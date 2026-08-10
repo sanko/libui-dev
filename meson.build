@@ -105,6 +105,10 @@ else
 	endif
 endif
 
+if libui_OS == 'sunos'
+	libui_project_compile_args += ['-D__EXTENSIONS__']
+endif
+
 # TODO come up with a better way to do this, both for libui (the compiler define, used by winapi.hpp, and the manifest args) and for the binaries (the manifest args)
 # TODO (after the above TODO is resolved) move that below the part below that actually adds these arguments
 libui_manifest_args = []
