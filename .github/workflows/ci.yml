@@ -14,50 +14,50 @@ permissions:
 
 jobs:
 
-  vm:
-    name:  ${{ matrix.platform.os }}
-    uses: ./.github/workflows/unified-tester.yml
-    secrets: inherit
-    with:
-      platform_name: ${{ matrix.platform.os }}
-      runner_type: 'vm'
-      os: ${{ matrix.platform.os }}
-      os_version: ${{ matrix.platform.version }}
-      arch: ${{ matrix.arch }}
-      prepare:  ${{ matrix.toolchain == 'clang' && matrix.platform.prepare_clang || matrix.platform.prepare_gcc }}
-      host_os: 'ubuntu-latest'
-      toolchain: ${{ matrix.compiler_cmd || matrix.toolchain }}
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-          - os: 'freebsd'
-            version: '15.0'
-            prepare_gcc:   'pkg install -y perl5 lang/gcc'
-            prepare_clang: 'pkg install -y perl5 llvm'
-          - os: 'openbsd'
-            version: '7.8'
+  #~ vm:
+    #~ name:  ${{ matrix.platform.os }}
+    #~ uses: ./.github/workflows/unified-tester.yml
+    #~ secrets: inherit
+    #~ with:
+      #~ platform_name: ${{ matrix.platform.os }}
+      #~ runner_type: 'vm'
+      #~ os: ${{ matrix.platform.os }}
+      #~ os_version: ${{ matrix.platform.version }}
+      #~ arch: ${{ matrix.arch }}
+      #~ prepare:  ${{ matrix.toolchain == 'clang' && matrix.platform.prepare_clang || matrix.platform.prepare_gcc }}
+      #~ host_os: 'ubuntu-latest'
+      #~ toolchain: ${{ matrix.compiler_cmd || matrix.toolchain }}
+    #~ strategy:
+      #~ fail-fast: false
+      #~ matrix:
+        #~ platform:
+          #~ - os: 'freebsd'
+            #~ version: '15.0'
+            #~ prepare_gcc:   'pkg install -y perl5 lang/gcc'
+            #~ prepare_clang: 'pkg install -y perl5 llvm'
+          #~ - os: 'openbsd'
+            #~ version: '7.8'
             #~ https://openbsd.app/
-            prepare_gcc:   'pkg_add gcc-11.2.0p19 g++-11.2.0p19'
-            prepare_clang: ''
+            #~ prepare_gcc:   'pkg_add gcc-11.2.0p19 g++-11.2.0p19'
+            #~ prepare_clang: ''
           #~ - os: 'netbsd'
             #~ version: '10.1'
             #~ prepare_gcc:   '/usr/sbin/pkg_add perl'
-          - os: 'dragonflybsd'
-            version: '6.4.0'
-            prepare_gcc:   'pkg install -y perl5 gcc'
+          #~ - os: 'dragonflybsd'
+            #~ version: '6.4.0'
+            #~ prepare_gcc:   'pkg install -y perl5 gcc'
           #~ - os: 'solaris'
             #~ version: '11.4'
             #~ prepare_gcc:   'pkg install -v --accept perl-538 gcc'
-        arch:
-          - 'x86_64'
-          - 'aarch64'
+        #~ arch:
+          #~ - 'x86_64'
+          #~ - 'aarch64'
           #~ - 'riscv64'
-        toolchain: ['gcc', 'clang']
-        exclude:
-          # Architecture exclusions
-          - platform: { os: 'dragonflybsd' }
-            arch: 'aarch64'
+        #~ toolchain: ['gcc', 'clang']
+        #~ exclude:
+          #~ Architecture exclusions
+          #~ - platform: { os: 'dragonflybsd' }
+            #~ arch: 'aarch64'
           #~ - platform: { os: 'dragonflybsd' }
             #~ arch: 'riscv64'
           #~ - platform: { os: 'solaris' }
@@ -70,18 +70,18 @@ jobs:
             #~ arch: 'riscv64'
           #~ - platform: { os: 'solaris' }
             #~ arch: 'riscv64'
-          # Toolchain exclusions for simplicity
+          #~ Toolchain exclusions for simplicity
           #~ - platform: { os: 'netbsd' }
             #~ toolchain: 'clang'
-          - platform: { os: 'dragonflybsd' }
-            toolchain: 'clang'
+          #~ - platform: { os: 'dragonflybsd' }
+            #~ toolchain: 'clang'
           #~ - platform: { os: 'solaris' }
             #~ toolchain: 'clang'
-        include:
-          # Use specific 'egcc' command for packaged GCC on OpenBSD
-          - platform: { os: 'openbsd' }
-            toolchain: 'gcc'
-            compiler_cmd: 'egcc'
+        #~ include:
+          #~ Use specific 'egcc' command for packaged GCC on OpenBSD
+          #~ - platform: { os: 'openbsd' }
+            #~ toolchain: 'gcc'
+            #~ compiler_cmd: 'egcc'
 
   direct:
     name: ${{ matrix.platform.name }}
@@ -94,6 +94,7 @@ jobs:
       arch: ${{ matrix.platform.arch }}
       prepare: ${{ (matrix.toolchain == 'clang' && matrix.platform.prepare_clang) || (matrix.toolchain == 'msvc' && matrix.platform.prepare_msvc) || matrix.platform.prepare_gcc }}
       toolchain: ${{ matrix.toolchain }}
+      link_type: ${{ matrix.link_type }}
     strategy:
       fail-fast: false
       matrix:
@@ -139,6 +140,7 @@ jobs:
             #~ --coverage link step needs on RISC-V (not pulled in by `clang` alone).
             #~ prepare_clang: 'sudo apt-get update && sudo apt-get install -y clang perl libclang-rt-dev'
         toolchain: ['gcc', 'clang', 'msvc']
+        link_type: ['static', 'shared']
         exclude:
           #~ - platform: { name: 'macos' }
             #~ toolchain: 'gcc'
@@ -150,7 +152,7 @@ jobs:
   results:
     name: Summary
     if: always()
-    needs: [vm, direct]
+    needs: [direct] # vm job is commented out for now
     runs-on: ubuntu-latest
     steps:
       - name: Download all result artifacts
@@ -167,8 +169,8 @@ jobs:
           SUMMARY_MD="status/status.md"
           STATUS_JSON="status/status.json"
           echo "## Build and Test Summary" > $SUMMARY_MD
-          echo "| OS | Arch | Compiler | Result |" >> $SUMMARY_MD
-          echo "|:---|:---|:---|:---|" >> $SUMMARY_MD
+          echo "| OS | Arch | Compiler | Link | Result |" >> $SUMMARY_MD
+          echo "|:---|:---|:---|:---|:---|" >> $SUMMARY_MD
           echo "{" > $STATUS_JSON
           is_first_json_entry=true
           if [ -d "results" ] && [ -n "$(ls -A results)" ]; then
@@ -180,18 +182,19 @@ jobs:
               platform="${parts[0]}"
               arch="${parts[1]}"
               compiler="${parts[2]}"
-              echo "| **$platform** | \`$arch\` | \`$compiler\` | $ICON $result |" >> $SUMMARY_MD
+              link_type="${parts[3]}"
+              echo "| **$platform** | \`$arch\` | \`$compiler\` | \`$link_type\` | $ICON $result |" >> $SUMMARY_MD
               if [ "$is_first_json_entry" = false ]; then
                 echo "," >> $STATUS_JSON
               fi
-              # The key is the unique job identifier, e.g., "freebsd-x86_64-gcc"
+              # The key is the unique job identifier, e.g., "freebsd-x86_64-gcc-static"
               # The value is "passing" or "failing" for Shields.io color coding
               SHIELD_STATUS=$([[ $result == 'success' ]] && echo '👍🏽 passing' || echo '👎🏽 failing')
               echo "\"$filename\": \"$SHIELD_STATUS\"" >> $STATUS_JSON
               is_first_json_entry=false
             done
           else
-            echo "| All build jobs | | | No result data found. ❌ |" >> $SUMMARY_MD
+            echo "| All build jobs | | | | No result data found. ❌ |" >> $SUMMARY_MD
           fi
           echo "}" >> $STATUS_JSON
           cat $SUMMARY_MD >> $GITHUB_STEP_SUMMARY

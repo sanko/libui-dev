@@ -26,6 +26,13 @@ endif()
 option(LIBUI_COMPILE_EXAMPLES "Compile example programs and tests" OFF)
 option(LIBUI_INCLUDE_INSTALL "Include install() declaration" OFF)
 option(LIBUI_COMPILE_GTK3 "Compile GTK3 on Linux" ON)
+option(LIBUI_BUILD_SHARED "Build libui as a shared library" OFF)
+
+if(LIBUI_BUILD_SHARED)
+    set(LIBUI_LIB_TYPE SHARED)
+else()
+    set(LIBUI_LIB_TYPE STATIC)
+endif()
 
 file(GLOB LIBUI_COMMON CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/common/*.c)
 list(FILTER LIBUI_COMMON EXCLUDE REGEX ".*OLD_table\\.c$")
@@ -36,9 +43,11 @@ if(MSVC)
         /wd4100
         /bigobj
         /D_FILE_OFFSET_BITS=64
-        /D_UI_STATIC
         /Dlibui_EXPORTS
     )
+    if(NOT LIBUI_BUILD_SHARED)
+        list(APPEND LIBUI_COMMON_FLAGS /D_UI_STATIC)
+    endif()
 else()
     set(LIBUI_COMMON_FLAGS
         -fvisibility=hidden
@@ -50,15 +59,17 @@ else()
         -Wpedantic
         -Wno-unused-parameter
         -Wno-switch
-        -D_UI_STATIC
         -Dlibui_EXPORTS
     )
+    if(NOT LIBUI_BUILD_SHARED)
+        list(APPEND LIBUI_COMMON_FLAGS -D_UI_STATIC)
+    endif()
 endif()
 
 if(WIN32)
     file(GLOB LIBUI_WIN CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/windows/*.cpp)
 
-    add_library(ui_win32 STATIC ${LIBUI_COMMON} ${LIBUI_WIN})
+    add_library(ui_win32 ${LIBUI_LIB_TYPE} ${LIBUI_COMMON} ${LIBUI_WIN})
     target_include_directories(ui_win32
         PRIVATE ${PROJECT_SOURCE_DIR}/windows ${PROJECT_SOURCE_DIR}
         PUBLIC ${PROJECT_SOURCE_DIR})
@@ -75,7 +86,7 @@ elseif(APPLE)
     file(GLOB LIBUI_DARWIN CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/darwin/*.m)
     list(FILTER LIBUI_DARWIN EXCLUDE REGEX ".*OLD_table\\.m$")
 
-    add_library(ui_darwin STATIC ${LIBUI_COMMON} ${LIBUI_DARWIN})
+    add_library(ui_darwin ${LIBUI_LIB_TYPE} ${LIBUI_COMMON} ${LIBUI_DARWIN})
     target_include_directories(ui_darwin
         PRIVATE ${PROJECT_SOURCE_DIR}/darwin ${PROJECT_SOURCE_DIR}
         PUBLIC ${PROJECT_SOURCE_DIR})
@@ -91,7 +102,7 @@ elseif(UNIX)
         file(GLOB LIBUI_GTK3 CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/unix/*.c)
         list(FILTER LIBUI_GTK3 EXCLUDE REGEX ".*OLD_table\\.c$")
 
-        add_library(ui_gtk3 STATIC ${LIBUI_COMMON} ${LIBUI_GTK3})
+        add_library(ui_gtk3 ${LIBUI_LIB_TYPE} ${LIBUI_COMMON} ${LIBUI_GTK3})
         target_include_directories(ui_gtk3
             PRIVATE ${PROJECT_SOURCE_DIR}/unix ${PROJECT_SOURCE_DIR}
             PUBLIC ${PROJECT_SOURCE_DIR})
@@ -180,6 +191,10 @@ if(LIBUI_COMPILE_EXAMPLES)
         add_executable(${name} ${_ex_sources})
         target_link_libraries(${name} PRIVATE LibUI::LibUI)
         if(WIN32)
+            # Always embed the Common Controls 6 manifest (the *.static.manifest
+            # selection) so uiInit() works. The manifest-less *.manifest files
+            # are an upstream debug aid for exposing theming bugs and would make
+            # InitCommonControlsEx() fail in shared builds.
             target_compile_definitions(${name} PRIVATE _UI_STATIC)
         endif()
         if(MSVC)
