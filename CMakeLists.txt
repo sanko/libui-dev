@@ -215,6 +215,7 @@ if(LIBUI_COMPILE_EXAMPLES)
     add_ui_exe(unit test/unit/resources.rc
         test/unit/main.c test/unit/init.c test/unit/slider.c test/unit/spinbox.c
         test/unit/label.c test/unit/button.c test/unit/combobox.c
+        test/unit/editablecombobox.c
         test/unit/checkbox.c test/unit/radiobuttons.c test/unit/tab.c
         test/unit/entry.c test/unit/menu.c test/unit/progressbar.c
         test/unit/drawmatrix.c test/unit/attrstr.c test/unit/window.c)

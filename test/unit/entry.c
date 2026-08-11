@@ -66,6 +66,33 @@ static void entrySetReadOnly(void **state)
 	assert_int_equal(uiEntryReadOnly(*e), 0);
 }
 
+static void entryPlaceholderDefault(void **state)
+{
+	uiEntry **e = uiEntryPtrFromState(state);
+	char *rv;
+
+	rv = uiEntryPlaceholder(*e);
+	assert_string_equal(rv, "");
+	uiFreeText(rv);
+}
+
+static void entrySetPlaceholder(void **state)
+{
+	uiEntry **e = uiEntryPtrFromState(state);
+	const char *text1 = "Placeholder 1";
+	const char *text2 = "Placeholder 2";
+	char *rv;
+
+	uiEntrySetPlaceholder(*e, text1);
+	rv = uiEntryPlaceholder(*e);
+	assert_string_equal(rv, text1);
+	uiFreeText(rv);
+	uiEntrySetPlaceholder(*e, text2);
+	rv = uiEntryPlaceholder(*e);
+	assert_string_equal(rv, text2);
+	uiFreeText(rv);
+}
+
 static int entryTestSetup(void **state)
 {
 	int rv = unitTestSetup(state);
@@ -123,6 +150,8 @@ int entryRunUnitTests(void)
 		entryUnitTests(entrySetTextNoCallback),
 		entryUnitTests(entryReadOnlyDefault),
 		entryUnitTests(entrySetReadOnly),
+		entryUnitTests(entryPlaceholderDefault),
+		entryUnitTests(entrySetPlaceholder),
 	};
 
 	return cmocka_run_group_tests_name("uiEntry", tests, unitTestsSetup, unitTestsTeardown);

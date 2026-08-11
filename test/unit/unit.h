@@ -20,6 +20,7 @@ int spinboxRunUnitTests(void);
 int labelRunUnitTests(void);
 int buttonRunUnitTests(void);
 int comboboxRunUnitTests(void);
+int editableComboboxRunUnitTests(void);
 int checkboxRunUnitTests(void);
 int radioButtonsRunUnitTests(void);
 int tabRunUnitTests(void);

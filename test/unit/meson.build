@@ -9,6 +9,7 @@ libui_unit_sources = [
         'label.c',
         'button.c',
         'combobox.c',
+        'editablecombobox.c',
         'checkbox.c',
         'radiobuttons.c',
         'tab.c',

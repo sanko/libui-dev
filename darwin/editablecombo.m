@@ -114,6 +114,19 @@ void uiEditableComboboxOnChanged(uiEditableCombobox *c, void (*f)(uiEditableComb
 	c->onChangedData = data;
 }
 
+char *uiEditableComboboxPlaceholder(uiEditableCombobox *c)
+{
+	NSString *text = [(NSTextFieldCell *)c->cb.cell placeholderString];
+	if (!text)
+		return uiDarwinNSStringToText(@"");
+	return uiDarwinNSStringToText(text);
+}
+
+void uiEditableComboboxSetPlaceholder(uiEditableCombobox *c, const char *text)
+{
+	[(NSTextFieldCell *)c->cb.cell setPlaceholderString:uiprivToNSString(text)];
+}
+
 static void defaultOnChanged(uiEditableCombobox *c, void *data)
 {
 	// do nothing

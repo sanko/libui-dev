@@ -66,6 +66,7 @@ int main(void)
 		{ labelRunUnitTests },
 		{ buttonRunUnitTests },
 		{ comboboxRunUnitTests },
+		{ editableComboboxRunUnitTests },
 		{ checkboxRunUnitTests },
 		{ radioButtonsRunUnitTests },
 		{ tabRunUnitTests },

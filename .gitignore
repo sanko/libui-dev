@@ -1,2 +1,3 @@
 subprojects/
 build-cmake/
+_build-msvc-static/
