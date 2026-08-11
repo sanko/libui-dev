@@ -160,29 +160,20 @@ if(LIBUI_INCLUDE_INSTALL)
 endif()
 
 if(LIBUI_COMPILE_EXAMPLES)
-    # The unit tests need cmocka. Prefer the copy that meson's wrap already
-    # extracts into subprojects/ (see subprojects/cmocka.wrap); when it is
-    # absent (e.g. a fresh CI checkout), download the same source the wrap
-    # points at.
-    set(CMOCKA_VERSION 2.0.2)
-    set(CMOCKA_DIR subprojects/cmocka-${CMOCKA_VERSION})
-    set(CMOCKA_SHA256 39f92f366bdf3f1a02af4da75b4a5c52df6c9f7e736c7d65de13283f9f0ef416)
+    # The unit tests need cmocka. The source of truth is the pinned submodule
+    # at 3rdparty/cmocka (see .gitmodules); it must be initialized before
+    # configuring, so no network access is needed at configure time.
+    if(NOT EXISTS ${PROJECT_SOURCE_DIR}/3rdparty/cmocka/CMakeLists.txt)
+        message(FATAL_ERROR
+            "The cmocka submodule is missing. Initialize it with:\n"
+            "    git submodule update --init\n"
+            "then configure again.")
+    endif()
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "build shared libraries" FORCE)
     set(UNIT_TESTING OFF CACHE BOOL "build cmocka's own unit tests" FORCE)
     set(WITH_EXAMPLES OFF CACHE BOOL "build cmocka's example programs" FORCE)
-    if(EXISTS ${PROJECT_SOURCE_DIR}/${CMOCKA_DIR}/CMakeLists.txt)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/${CMOCKA_DIR}
-            ${CMAKE_CURRENT_BINARY_DIR}/cmocka)
-    else()
-        include(FetchContent)
-        FetchContent_Declare(cmocka
-            URL
-                https://cmocka.org/files/2.0/cmocka-${CMOCKA_VERSION}.tar.xz
-            URL_HASH SHA256=${CMOCKA_SHA256}
-            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-        )
-        FetchContent_MakeAvailable(cmocka)
-    endif()
+    add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/cmocka
+        ${CMAKE_CURRENT_BINARY_DIR}/cmocka)
 
     function(add_ui_exe name rc)
         set(_ex_sources ${ARGN})
@@ -198,13 +189,18 @@ if(LIBUI_COMPILE_EXAMPLES)
             # InitCommonControlsEx() fail in shared builds.
             target_compile_definitions(${name} PRIVATE _UI_STATIC)
             # GUI subsystem so the app doesn't pop up a console window behind
-            # itself. main() still works as the entry point: MSVC links with
-            # /ENTRY:mainCRTStartup below, and MinGW's -mwindows keeps calling
-            # main().
+            # itself. main() still works as the entry point: MSVC-style
+            # toolchains (MSVC, clang-cl, and GNU-style clang targeting the
+            # MSVC ABI) need the CRT entry forced to mainCRTStartup below;
+            # MinGW's -mwindows CRT resolves main() on its own.
             set_target_properties(${name} PROPERTIES WIN32_EXECUTABLE TRUE)
-        endif()
-        if(MSVC)
-            target_link_options(${name} PRIVATE /ENTRY:mainCRTStartup)
+            if(NOT MINGW)
+                if(CMAKE_C_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+                    target_link_options(${name} PRIVATE /ENTRY:mainCRTStartup)
+                else()
+                    target_link_options(${name} PRIVATE "-Wl,/ENTRY:mainCRTStartup")
+                endif()
+            endif()
         endif()
     endfunction()
 

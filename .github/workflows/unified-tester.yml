@@ -46,6 +46,10 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6.0.0
+        with:
+          # 3rdparty/cmocka is pinned as a submodule; it is required by the
+          # CMake build when LIBUI_COMPILE_EXAMPLES is on.
+          submodules: recursive
 
       - name: Setup MSVC
         if: inputs.toolchain == 'msvc'
