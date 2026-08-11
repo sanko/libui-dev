@@ -6,3 +6,12 @@ struct uiDrawContext {
 	CGContextRef c;
 	CGFloat height;				// needed for text; see below
 };
+
+// bitmap API
+struct uiDrawBitmap {
+	CGImageRef cg;
+	unsigned char *data;
+	int Width;
+	int Height;
+	int Stride;
+};

@@ -535,25 +535,114 @@ void uiDrawImage(uiDrawContext *c, uiImage *img, double x, double y, double widt
 }
 
 // bitmap API
-// TODO actually implement uiDrawBitmap for darwin
+
+// The bitmap is stored as 32-bit little-endian XRGB (memory order B, G, R, X),
+// matching what the other backends expect; alpha is ignored, as on Windows and
+// unix. Core Graphics has no concept of mutating a CGImage in place, so the raw
+// buffer is kept and the CGImage rebuilt whenever the contents change.
+static CGImageRef uiprivBitmapCGImage(const unsigned char *data, int stride, int width, int height)
+{
+	CGColorSpaceRef colorspace;
+	CGDataProviderRef provider;
+	CGImageRef cg;
+
+	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+	if (colorspace == NULL)
+		return NULL;
+	provider = CGDataProviderCreateWithData(NULL, data, (size_t) stride * height, NULL);
+	if (provider == NULL) {
+		CGColorSpaceRelease(colorspace);
+		return NULL;
+	}
+	cg = CGImageCreate(width, height,
+		8, 32,
+		stride,
+		colorspace,
+		kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst,
+		provider,
+		NULL, true, kCGRenderingIntentDefault);
+	CGDataProviderRelease(provider);
+	CGColorSpaceRelease(colorspace);
+	return cg;
+}
 
 uiDrawBitmap *uiDrawNewBitmap(uiDrawContext *c, int width, int height)
 {
-	uiprivUserBug("TODO: Implement uiDrawNewBitmap()");
-	return NULL;
+	uiDrawBitmap *bmp;
+
+	bmp = uiprivNew(uiDrawBitmap);
+	bmp->Width = width;
+	bmp->Height = height;
+	bmp->Stride = width * 4;
+	bmp->data = (unsigned char *) uiprivAlloc((size_t) bmp->Stride * height, "uiDrawBitmap data");
+	bmp->cg = uiprivBitmapCGImage(bmp->data, bmp->Stride, width, height);
+	if (bmp->cg == NULL)
+		uiprivImplBug("error creating bitmap image");
+	return bmp;
 }
 
 void uiDrawBitmapUpdate(uiDrawBitmap *bmp, const void *data)
 {
-	uiprivUserBug("TODO: Implement uiDrawBitmapUpdate()");
+	CGImageRef cg;
+
+	memcpy(bmp->data, data, (size_t) bmp->Stride * bmp->Height);
+	cg = uiprivBitmapCGImage(bmp->data, bmp->Stride, bmp->Width, bmp->Height);
+	if (cg == NULL)
+		uiprivImplBug("error creating bitmap image");
+	CGImageRelease(bmp->cg);
+	bmp->cg = cg;
 }
 
 void uiDrawBitmapDraw(uiDrawContext *c, uiDrawBitmap *bmp, uiRect *srcrect, uiRect *dstrect, int filter)
 {
-	uiprivUserBug("TODO: Implement uiDrawBitmapDraw()");
+	double sx, sy;
+
+	if (bmp->cg == NULL)
+		return;
+	// guard against degenerate rectangles
+	if (srcrect->Width == 0 || srcrect->Height == 0 ||
+		dstrect->Width == 0 || dstrect->Height == 0)
+		return;
+
+	CGContextSaveGState(c->c);
+
+	// clip to the destination so the source region cropped by the transform
+	// below does not paint outside it
+	CGContextClipToRect(c->c,
+		CGRectMake(dstrect->X, dstrect->Y, dstrect->Width, dstrect->Height));
+
+	sx = dstrect->Width / (double) srcrect->Width;
+	sy = dstrect->Height / (double) srcrect->Height;
+
+	// Map the source region of the image onto the destination rectangle.
+	//
+	// The CTM is expressed in the image's own bottom-up coordinate space
+	// (origin at the bottom-left, y increasing upward), so we can place the
+	// source rectangle by translating to its top edge and flipping the y axis
+	// to compensate for the area being top-down:
+	//
+	//   image y  = Height - srcrect->Y                  -> dstrect top
+	//   image y  = Height - srcrect->Y - srcrect->Height -> dstrect bottom
+	//
+	// The negative y scale flips the image upright again.
+	CGContextTranslateCTM(c->c, dstrect->X, dstrect->Y);
+	CGContextScaleCTM(c->c, sx, -sy);
+	CGContextTranslateCTM(c->c, -srcrect->X, -(bmp->Height - srcrect->Y));
+
+	if (filter)
+		CGContextSetInterpolationQuality(c->c, kCGInterpolationHigh);
+	else
+		CGContextSetInterpolationQuality(c->c, kCGInterpolationNone);
+
+	CGContextDrawImage(c->c, CGRectMake(0, 0, bmp->Width, bmp->Height), bmp->cg);
+
+	CGContextRestoreGState(c->c);
 }
 
 void uiDrawFreeBitmap(uiDrawBitmap *bmp)
 {
-	uiprivUserBug("TODO: Implement uiDrawFreeBitmap()");
+	if (bmp->cg != NULL)
+		CGImageRelease(bmp->cg);
+	uiprivFree(bmp->data);
+	uiprivFree(bmp);
 }
