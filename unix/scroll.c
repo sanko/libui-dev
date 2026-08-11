@@ -1,6 +1,8 @@
 // 3 january 2025
 #include "uipriv_unix.h"
 
+#define uiScrollSignature 0x5363726F
+
 struct uiScroll {
 	uiUnixControl c;
 	GtkWidget *widget;
