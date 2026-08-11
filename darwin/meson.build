@@ -37,6 +37,7 @@ libui_sources += [
 	'darwin/opentype.m',
 	'darwin/progressbar.m',
 	'darwin/radiobuttons.m',
+	'darwin/scroll.m',
 	'darwin/scrollview.m',
 	'darwin/separator.m',
 	'darwin/slider.m',

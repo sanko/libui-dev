@@ -47,6 +47,7 @@ libui_sources += [
 	'windows/parent.cpp',
 	'windows/progressbar.cpp',
 	'windows/radiobuttons.cpp',
+	'windows/scroll.cpp',
 	'windows/separator.cpp',
 	'windows/sizing.cpp',
 	'windows/slider.cpp',

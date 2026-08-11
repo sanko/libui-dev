@@ -24,6 +24,7 @@ int editableComboboxRunUnitTests(void);
 int checkboxRunUnitTests(void);
 int radioButtonsRunUnitTests(void);
 int tabRunUnitTests(void);
+int scrollRunUnitTests(void);
 int entryRunUnitTests(void);
 int menuRunUnitTests(void);
 int progressBarRunUnitTests(void);

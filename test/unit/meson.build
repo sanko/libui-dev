@@ -13,6 +13,7 @@ libui_unit_sources = [
         'checkbox.c',
         'radiobuttons.c',
         'tab.c',
+        'scroll.c',
         'entry.c',
         'menu.c',
         'progressbar.c',

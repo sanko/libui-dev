@@ -3218,6 +3218,38 @@ _UI_EXTERN uiGrid *uiNewGrid(void);
 
 
 /**
+ * A scrollable container control.
+ *
+ * This control is a great way of making a child control scrollable.
+ * The child control is automatically sized to the larger of its minimum
+ * size and the visible area of the container.
+ *
+ * @struct uiScroll
+ * @extends uiControl
+ * @ingroup container
+ */
+typedef struct uiScroll uiScroll;
+#define uiScroll(this) ((uiScroll *) (this))
+
+/**
+ * Creates a new scroll container.
+ *
+ * @returns A new uiScroll instance.
+ * @memberof uiScroll @static
+ */
+_UI_EXTERN uiScroll *uiNewScroll(void);
+
+/**
+ * Sets the scroll container's child.
+ *
+ * @param s uiScroll instance.
+ * @param c uiControl child instance, or `NULL`.
+ * @memberof uiScroll
+ */
+_UI_EXTERN void uiScrollSetChild(uiScroll *s, uiControl *c);
+
+
+/**
  * A container for an image to be displayed on screen.
  *
  * The container can hold multiple representations of the same image with the

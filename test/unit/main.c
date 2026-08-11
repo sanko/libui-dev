@@ -70,6 +70,7 @@ int main(void)
 		{ checkboxRunUnitTests },
 		{ radioButtonsRunUnitTests },
 		{ tabRunUnitTests },
+		{ scrollRunUnitTests },
 		{ entryRunUnitTests },
 		{ progressBarRunUnitTests },
 		{ drawMatrixRunUnitTests },
