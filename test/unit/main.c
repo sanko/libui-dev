@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "unit.h"
 
@@ -49,37 +50,47 @@ int unitTestTeardown(void **_state)
 }
 
 struct unitTest {
+	const char *name;
 	int (*fn)(void);
 };
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	size_t i;
 	int failedTests = 0;
 	int failedComponents = 0;
+	const char *filter = NULL;
 	struct unitTest unitTests[] = {
-		{ initRunUnitTests },
-		{ windowRunUnitTests },
-		{ menuRunUnitTests },
-		{ sliderRunUnitTests },
-		{ spinboxRunUnitTests },
-		{ labelRunUnitTests },
-		{ buttonRunUnitTests },
-		{ comboboxRunUnitTests },
-		{ editableComboboxRunUnitTests },
-		{ checkboxRunUnitTests },
-		{ radioButtonsRunUnitTests },
-		{ tabRunUnitTests },
-		{ scrollRunUnitTests },
-		{ entryRunUnitTests },
-		{ progressBarRunUnitTests },
-		{ drawMatrixRunUnitTests },
-		{ attrstrRunUnitTests },
-		{ tooltipRunUnitTests },
+		{ "init", initRunUnitTests },
+		{ "window", windowRunUnitTests },
+		{ "menu", menuRunUnitTests },
+		{ "slider", sliderRunUnitTests },
+		{ "spinbox", spinboxRunUnitTests },
+		{ "label", labelRunUnitTests },
+		{ "button", buttonRunUnitTests },
+		{ "combobox", comboboxRunUnitTests },
+		{ "editablecombobox", editableComboboxRunUnitTests },
+		{ "checkbox", checkboxRunUnitTests },
+		{ "radiobuttons", radioButtonsRunUnitTests },
+		{ "tab", tabRunUnitTests },
+		{ "scroll", scrollRunUnitTests },
+		{ "entry", entryRunUnitTests },
+		{ "progressbar", progressBarRunUnitTests },
+		{ "drawmatrix", drawMatrixRunUnitTests },
+		{ "attrstr", attrstrRunUnitTests },
+		{ "tooltip", tooltipRunUnitTests },
 	};
 
+	// an optional argument filters which component(s) run; each component
+	// runs as its own process so ctest reports them individually
+	if (argc > 1)
+		filter = argv[1];
+
 	for (i = 0; i < sizeof(unitTests)/sizeof(*unitTests); ++i) {
-		int fails = (unitTests[i].fn)();
+		int fails;
+		if (filter != NULL && strstr(unitTests[i].name, filter) == NULL)
+			continue;
+		fails = (unitTests[i].fn)();
 		failedTests += fails;
 		if (fails > 0)
 			failedComponents++;

@@ -228,7 +228,26 @@ if(LIBUI_COMPILE_EXAMPLES)
     # the unit runner reports results on stdout; keep it console-subsystem
     set_target_properties(unit PROPERTIES WIN32_EXECUTABLE FALSE)
     enable_testing()
-    add_test(NAME unit COMMAND unit)
+    # each component runs as its own process so ctest reports failures per
+    # component instead of one blob for the whole suite
+    add_test(NAME unit-attrstr COMMAND unit attrstr)
+    add_test(NAME unit-button COMMAND unit button)
+    add_test(NAME unit-checkbox COMMAND unit checkbox)
+    add_test(NAME unit-combobox COMMAND unit combobox)
+    add_test(NAME unit-drawmatrix COMMAND unit drawmatrix)
+    add_test(NAME unit-editablecombobox COMMAND unit editablecombobox)
+    add_test(NAME unit-entry COMMAND unit entry)
+    add_test(NAME unit-init COMMAND unit init)
+    add_test(NAME unit-label COMMAND unit label)
+    add_test(NAME unit-menu COMMAND unit menu)
+    add_test(NAME unit-progressbar COMMAND unit progressbar)
+    add_test(NAME unit-radiobuttons COMMAND unit radiobuttons)
+    add_test(NAME unit-scroll COMMAND unit scroll)
+    add_test(NAME unit-slider COMMAND unit slider)
+    add_test(NAME unit-spinbox COMMAND unit spinbox)
+    add_test(NAME unit-tab COMMAND unit tab)
+    add_test(NAME unit-tooltip COMMAND unit tooltip)
+    add_test(NAME unit-window COMMAND unit window)
 
     # headless control smoke tests
     add_ui_exe(qa test/qa/resources.rc
