@@ -56,11 +56,26 @@ jobs:
         run: |
           ${{ inputs.prepare }}
           if [ "${{ inputs.toolchain }}" = 'msvc' ]; then
-            cmd.exe /d /c "python -m pip install meson ninja && meson setup _build --buildtype=release --default-library=static && meson compile -C _build && meson test -C _build"
+            cmd.exe /d /c "cmake -S . -B _build -A ${{ inputs.arch == 'aarch64' && 'arm64' || 'x64' }} -DLIBUI_COMPILE_EXAMPLES=ON && cmake --build _build --config Release && ctest --test-dir _build -C Release"
+          elif [[ "${{ inputs.os }}" == windows* ]]; then
+            # MinGW toolchain from the `choco install mingw` prepare step
+            export PATH="/c/ProgramData/mingw64/mingw64/bin:$PATH"
+            if [ "${{ inputs.toolchain }}" = 'clang' ]; then
+              export CC=clang
+              export CXX=clang++
+            else
+              export CC=gcc
+              export CXX=g++
+            fi
+            cmake -S . -B _build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DLIBUI_COMPILE_EXAMPLES=ON
+            cmake --build _build
+            ctest --test-dir _build
           else
-            python3 -m pip install meson ninja || python3 -m pip install --break-system-packages meson ninja || python -m pip install meson ninja
             sudo apt-get update -y && sudo apt-get install -y libgtk-3-dev xvfb || true
-            meson setup _build --buildtype=release --default-library=static && meson compile -C _build && if command -v xvfb-run >/dev/null 2>&1; then xvfb-run meson test -C _build; else meson test -C _build; fi
+            command -v cmake >/dev/null 2>&1 || python3 -m pip install cmake || python3 -m pip install --break-system-packages cmake || python -m pip install cmake
+            cmake -S . -B _build -DCMAKE_BUILD_TYPE=Release -DLIBUI_COMPILE_EXAMPLES=ON
+            cmake --build _build
+            if command -v xvfb-run >/dev/null 2>&1; then xvfb-run ctest --test-dir _build; else ctest --test-dir _build; fi
           fi
 
       - name: Build and Test in FreeBSD
@@ -72,8 +87,8 @@ jobs:
           arch: ${{ inputs.arch }}
           prepare: ${{ inputs.prepare }}
           run: |
-            pkg install -y meson gtk3 pkgconf
-            meson setup _build --buildtype=release --default-library=static && meson compile -C _build
+            pkg install -y cmake gtk3 pkgconf
+            cmake -S . -B _build -DCMAKE_BUILD_TYPE=Release -DLIBUI_COMPILE_EXAMPLES=ON && cmake --build _build
 
       - name: Build and Test in OpenBSD
         if: inputs.runner_type == 'vm' && inputs.os == 'openbsd'
@@ -84,8 +99,8 @@ jobs:
           arch: ${{ inputs.arch }}
           prepare: ${{ inputs.prepare }}
           run: |
-            pkg_add meson gtk+3
-            meson setup _build --buildtype=release --default-library=static && meson compile -C _build
+            pkg_add cmake gtk+3
+            cmake -S . -B _build -DCMAKE_BUILD_TYPE=Release -DLIBUI_COMPILE_EXAMPLES=ON && cmake --build _build
 
       - name: Build and Test in NetBSD
         if: inputs.runner_type == 'vm' && inputs.os == 'netbsd'
@@ -96,9 +111,9 @@ jobs:
           arch: ${{ inputs.arch }}
           prepare: ${{ inputs.prepare }}
           run: |
-            /usr/sbin/pkg_add meson gtk3+ pkgconf x11 libXext libXrender xproto libxcb
+            /usr/sbin/pkg_add cmake gtk3+ pkgconf x11 libXext libXrender xproto libxcb
             export PKG_CONFIG_PATH=/usr/pkg/lib/pkgconfig:/usr/X11R7/lib/pkgconfig
-            meson setup _build --buildtype=release --default-library=static && meson compile -C _build
+            cmake -S . -B _build -DCMAKE_BUILD_TYPE=Release -DLIBUI_COMPILE_EXAMPLES=ON && cmake --build _build
 
       - name: Build and Test in DragonflyBSD
         if: inputs.runner_type == 'vm' && inputs.os == 'dragonflybsd'
@@ -108,8 +123,8 @@ jobs:
           usesh: true
           prepare: ${{ inputs.prepare }}
           run: |
-            pkg install -y meson gtk3 pkgconf
-            meson setup _build --buildtype=release --default-library=static && meson compile -C _build
+            pkg install -y cmake gtk3 pkgconf
+            cmake -S . -B _build -DCMAKE_BUILD_TYPE=Release -DLIBUI_COMPILE_EXAMPLES=ON && cmake --build _build
 
       - name: Build and Test in Solaris
         if: inputs.runner_type == 'vm' && inputs.os == 'solaris'
@@ -120,8 +135,8 @@ jobs:
           prepare: ${{ inputs.prepare }}
           run: |
             export PKG_CONFIG_PATH=/usr/lib/64/pkgconfig
-            pkg install -v --accept meson gtk3 developer/build/pkg-config
-            meson setup _build --buildtype=release --default-library=static && meson compile -C _build
+            pkg install -v --accept cmake gtk3 developer/build/pkg-config
+            cmake -S . -B _build -DCMAKE_BUILD_TYPE=Release -DLIBUI_COMPILE_EXAMPLES=ON && cmake --build _build
 
       #~ - name: Upload coverage reports to Codecov
         #~ uses: codecov/codecov-action@v5
