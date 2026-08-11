@@ -1,6 +1,19 @@
 // 6 april 2015
 #include "uipriv_windows.hpp"
 
+void uiSetAppMetadata(const char *name, const char *version, const char *package)
+{
+	(void) name;
+	(void) version;
+	// the AppUserModelID controls how the taskbar groups the application's
+	// windows and what identity notifications and jump lists use
+	if (package != NULL) {
+		WCHAR *appid = toUTF16(package);
+		SetCurrentProcessExplicitAppUserModelID(appid);
+		uiprivFree(appid);
+	}
+}
+
 // this is a helper function that takes the logic of determining window classes and puts it all in one place
 // there are a number of places where we need to know what window class an arbitrary handle has
 // theoretically we could use the class atom to avoid a _wcsicmp()

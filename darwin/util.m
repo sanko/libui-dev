@@ -1,6 +1,16 @@
 // 7 april 2015
 #import "uipriv_darwin.h"
 
+void uiSetAppMetadata(const char *name, const char *version, const char *package)
+{
+	(void) version;
+	(void) package;
+	// unbundled applications show the raw process name in the menu bar and
+	// Dock; set it explicitly so the application can choose what users see
+	if (name != NULL)
+		[[NSProcessInfo processInfo] setProcessName:[NSString stringWithUTF8String:name]];
+}
+
 // LONGTERM do we really want to do this? make it an option?
 // Prevent automatic substitutions from changing entry contents behind the
 // application's back.

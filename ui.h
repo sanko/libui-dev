@@ -61,6 +61,14 @@ struct uiInitOptions {
 	size_t Size;
 };
 
+// uiSetAppMetadata() supplies application metadata (name, version, and a
+// package identifier such as "com.example.app") for the platform to use, e.g.
+// the application name shown in the menu bar on macOS, the AppUserModelID used
+// for taskbar grouping on Windows, and the application/prgname on GTK. It must
+// be called before uiInit(). Any of the arguments may be NULL; the values are
+// best-effort and only some are used on a given platform.
+_UI_EXTERN void uiSetAppMetadata(const char *name, const char *version, const char *package);
+
 _UI_EXTERN const char *uiInit(uiInitOptions *options);
 _UI_EXTERN void uiUninit(void);
 _UI_EXTERN void uiFreeInitError(const char *err);

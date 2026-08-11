@@ -19,6 +19,24 @@ static void initUninitTwice(void **state)
 	uiUninit();
 }
 
+static void setAppMetadataThenInit(void **state)
+{
+	uiInitOptions o = {0};
+
+	uiSetAppMetadata("test", "1.2.3", "test.test");
+	assert_null(uiInit(&o));
+	uiUninit();
+}
+
+static void setAppMetadataNullsThenInit(void **state)
+{
+	uiInitOptions o = {0};
+
+	uiSetAppMetadata(NULL, NULL, NULL);
+	assert_null(uiInit(&o));
+	uiUninit();
+}
+
 #if !defined(_WIN32) && !defined(__APPLE__)
 static void mainStepsResetAfterQuit(void **state)
 {
@@ -87,6 +105,8 @@ int initRunUnitTests(void)
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(initUninit),
 		cmocka_unit_test(initUninitTwice),
+		cmocka_unit_test(setAppMetadataThenInit),
+		cmocka_unit_test(setAppMetadataNullsThenInit),
 #if !defined(_WIN32) && !defined(__APPLE__)
 		cmocka_unit_test(mainStepsResetAfterQuit),
 #endif
