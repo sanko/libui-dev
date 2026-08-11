@@ -271,6 +271,7 @@ if(LIBUI_COMPILE_EXAMPLES)
     add_ui_exe(controlgallery examples/resources.rc examples/controlgallery/main.c)
     add_ui_exe(histogram examples/resources.rc examples/histogram/main.c)
     add_ui_exe(drawtext examples/resources.rc examples/drawtext/main.c)
+    add_ui_exe(drawbitmap examples/resources.rc examples/drawbitmap.c)
     add_ui_exe(datetime examples/resources.rc examples/datetime/main.c)
 
     find_package(Threads REQUIRED)

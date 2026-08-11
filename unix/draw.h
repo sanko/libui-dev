@@ -7,6 +7,15 @@ struct uiDrawContext {
 	GtkWidget *widget;
 };
 
+// bitmap API
+struct uiDrawBitmap {
+	int Width;
+	int Height;
+	int Stride;
+
+	cairo_surface_t *bmp;
+};
+
 // drawpath.c
 extern void uiprivRunPath(uiDrawPath *p, cairo_t *cr);
 extern uiDrawFillMode uiprivPathFillMode(uiDrawPath *path);

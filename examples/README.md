@@ -44,3 +44,4 @@ Subdirectories are larger demos that combine several concepts:
 | `timer.c` | Run a repeating timer callback. |
 | `queue-main.c` | Queue a callback onto the main UI loop. |
 | `should-quit.c` | Handle application quit requests. |
+| `drawbitmap.c` | Draw a uiDrawBitmap, scaled and magnified. |

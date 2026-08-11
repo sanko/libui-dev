@@ -533,3 +533,27 @@ void uiDrawImage(uiDrawContext *c, uiImage *img, double x, double y, double widt
 	// Restore graphics state
 	CGContextRestoreGState(c->c);
 }
+
+// bitmap API
+// TODO actually implement uiDrawBitmap for darwin
+
+uiDrawBitmap *uiDrawNewBitmap(uiDrawContext *c, int width, int height)
+{
+	uiprivUserBug("TODO: Implement uiDrawNewBitmap()");
+	return NULL;
+}
+
+void uiDrawBitmapUpdate(uiDrawBitmap *bmp, const void *data)
+{
+	uiprivUserBug("TODO: Implement uiDrawBitmapUpdate()");
+}
+
+void uiDrawBitmapDraw(uiDrawContext *c, uiDrawBitmap *bmp, uiRect *srcrect, uiRect *dstrect, int filter)
+{
+	uiprivUserBug("TODO: Implement uiDrawBitmapDraw()");
+}
+
+void uiDrawFreeBitmap(uiDrawBitmap *bmp)
+{
+	uiprivUserBug("TODO: Implement uiDrawFreeBitmap()");
+}

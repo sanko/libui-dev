@@ -144,6 +144,9 @@ libui_examples = {
 	'drawtext': {
 		'sources':		['drawtext/main.c'],
 	},
+	'drawbitmap': {
+		'sources':		['drawbitmap.c'],
+	},
 	'datetime': {
 		'sources':		['datetime/main.c'],
 	},

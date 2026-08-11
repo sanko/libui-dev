@@ -2289,6 +2289,24 @@ _UI_EXTERN void uiDrawClip(uiDrawContext *c, uiDrawPath *path);
 _UI_EXTERN void uiDrawSave(uiDrawContext *c);
 _UI_EXTERN void uiDrawRestore(uiDrawContext *c);
 
+// uiRect describes a rectangle in integer coordinates.
+typedef struct uiRect uiRect;
+struct uiRect {
+	int X;
+	int Y;
+	int Width;
+	int Height;
+};
+
+// uiDrawBitmap is a bitmap image that can be drawn to a uiDrawContext.
+typedef struct uiDrawBitmap uiDrawBitmap;
+
+// bitmap API
+_UI_EXTERN uiDrawBitmap *uiDrawNewBitmap(uiDrawContext *c, int width, int height);
+_UI_EXTERN void uiDrawBitmapUpdate(uiDrawBitmap *bmp, const void *data);
+_UI_EXTERN void uiDrawBitmapDraw(uiDrawContext *c, uiDrawBitmap *bmp, uiRect *srcrect, uiRect *dstrect, int filter);
+_UI_EXTERN void uiDrawFreeBitmap(uiDrawBitmap *bmp);
+
 // uiAttribute stores information about an attribute in a
 // uiAttributedString.
 //
