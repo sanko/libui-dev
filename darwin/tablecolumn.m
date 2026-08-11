@@ -173,11 +173,11 @@ struct textColumnCreateParams {
 
 			self->cb = [[NSButton alloc] initWithFrame:NSZeroRect];
 			[self->cb setTitle:@""];
-			[self->cb setButtonType:NSSwitchButton];
+			[self->cb setButtonType:NSButtonTypeSwitch];
 			// doesn't seem to have an associated bezel style
 			[self->cb setBordered:NO];
 			[self->cb setTransparent:NO];
-			uiDarwinSetControlFont(self->cb, NSRegularControlSize);
+			uiDarwinSetControlFont(self->cb, NSControlSizeRegular);
 			[self->cb setTranslatesAutoresizingMaskIntoConstraints:NO];
 			[self->cb setTarget:self];
 			[self->cb setAction:@selector(uiprivOnCheckboxAction:)];
@@ -274,9 +274,9 @@ struct textColumnCreateParams {
 	if (self->cb != nil) {
 		value = uiprivTableModelCellValue(self->m, row, self->checkboxModelColumn);
 		if (uiTableValueInt(value) != 0)
-			[self->cb setState:NSOnState];
+			[self->cb setState:NSControlStateValueOn];
 		else
-			[self->cb setState:NSOffState];
+			[self->cb setState:NSControlStateValueOff];
 		uiFreeTableValue(value);
 
 		[self->cb setEnabled:uiprivTableModelCellEditable(self->m, row, self->checkboxEditableModelColumn)];
@@ -300,7 +300,7 @@ struct textColumnCreateParams {
 	uiTableValue *value;
 
 	row = [self->t->tv rowForView:self->cb];
-	value = uiNewTableValueInt([self->cb state] != NSOffState);
+	value = uiNewTableValueInt([self->cb state] != NSControlStateValueOff);
 	uiprivTableModelSetCellValue(self->m, row, self->checkboxModelColumn, value);
 	uiFreeTableValue(value);
 }
@@ -354,9 +354,8 @@ struct textColumnCreateParams {
 		self->modelColumn = mc;
 
 		self->p = [[NSProgressIndicator alloc] initWithFrame:NSZeroRect];
-		[self->p setControlSize:NSRegularControlSize];
-		[self->p setBezeled:YES];
-		[self->p setStyle:NSProgressIndicatorBarStyle];
+		[self->p setControlSize:NSControlSizeRegular];
+		[self->p setStyle:NSProgressIndicatorStyleBar];
 		[self->p setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[self addSubview:self->p];
 
@@ -474,10 +473,10 @@ struct textColumnCreateParams {
 		self->editableColumn = ec;
 
 		self->b = [[NSButton alloc] initWithFrame:NSZeroRect];
-		[self->b setButtonType:NSMomentaryPushInButton];
+		[self->b setButtonType:NSButtonTypeMomentaryPushIn];
 		[self->b setBordered:YES];
-		[self->b setBezelStyle:NSRoundRectBezelStyle];
-		uiDarwinSetControlFont(self->b, NSRegularControlSize);
+		[self->b setBezelStyle:NSBezelStyleAccessoryBarAction];
+		uiDarwinSetControlFont(self->b, NSControlSizeRegular);
 		[self->b setTarget:self];
 		[self->b setAction:@selector(uiprivOnClicked:)];
 		[self->b setTranslatesAutoresizingMaskIntoConstraints:NO];

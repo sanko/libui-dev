@@ -21,6 +21,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(APPLE)
     enable_language(OBJC)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
 endif()
 
 option(LIBUI_COMPILE_EXAMPLES "Compile example programs and tests" OFF)

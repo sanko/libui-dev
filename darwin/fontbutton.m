@@ -34,9 +34,9 @@ struct uiFontButton {
 		self->libui_b = b;
 
 		// imitate a NSColorWell in appearance
-		[self setButtonType:NSPushOnPushOffButton];
+		[self setButtonType:NSButtonTypePushOnPushOff];
 		[self setBordered:YES];
-		[self setBezelStyle:NSShadowlessSquareBezelStyle];
+		[self setBezelStyle:NSBezelStyleShadowlessSquare];
 
 		// default font values according to the CTFontDescriptor reference
 		// this is autoreleased (thanks swillits in irc.freenode.net/#macdev)
@@ -71,7 +71,7 @@ struct uiFontButton {
 
 - (IBAction)fontButtonClicked:(id)sender
 {
-	if ([self state] == NSOnState)
+	if ([self state] == NSControlStateValueOn)
 		[self activateFontButton];
 	else
 		[self deactivateFontButton:NO];
@@ -92,7 +92,7 @@ struct uiFontButton {
 		selector:@selector(deactivateOnClose:)
 		name:NSWindowWillCloseNotification
 		object:[NSFontPanel sharedFontPanel]];
-	[self setState:NSOnState];
+	[self setState:NSControlStateValueOn];
 }
 
 - (void)deactivateFontButton:(BOOL)activatingAnother
@@ -107,7 +107,7 @@ struct uiFontButton {
 	[[NSNotificationCenter defaultCenter] removeObserver:self
 		name:NSWindowWillCloseNotification
 		object:[NSFontPanel sharedFontPanel]];
-	[self setState:NSOffState];
+	[self setState:NSControlStateValueOff];
 }
 
 - (void)deactivateOnClose:(NSNotification *)note
@@ -117,11 +117,9 @@ struct uiFontButton {
 
 - (void)changeFont:(id)sender
 {
-	NSFontManager *fm;
 	NSFont *old;
 	uiFontButton *b = self->libui_b;
 
-	fm = (NSFontManager *) sender;
 	old = self->libui_font;
 	self->libui_font = [sender convertFont:self->libui_font];
 	// do this even if it returns the same; we don't own anything that isn't from a new or alloc/init
@@ -218,7 +216,7 @@ uiFontButton *uiNewFontButton(void)
 	uiDarwinNewControl(uiFontButton, b);
 
 	b->button = [[uiprivFontButton alloc] initWithFrame:NSZeroRect libuiFontButton:b];
-	uiDarwinSetControlFont(b->button, NSRegularControlSize);
+	uiDarwinSetControlFont(b->button, NSControlSizeRegular);
 
 	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
 

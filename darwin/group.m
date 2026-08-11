@@ -136,8 +136,6 @@ void uiGroupSetTitle(uiGroup *g, const char *title)
 
 void uiGroupSetChild(uiGroup *g, uiControl *child)
 {
-	NSView *childView;
-
 	if (g->child != NULL) {
 		removeConstraints(g);
 		uiDarwinControlSetHuggingPriority(uiDarwinControl(g->child), g->oldHorzHuggingPri, NSLayoutConstraintOrientationHorizontal);
@@ -147,7 +145,6 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 	}
 	g->child = child;
 	if (g->child != NULL) {
-		childView = (NSView *) uiControlHandle(g->child);
 		uiControlSetParent(g->child, uiControl(g));
 		uiDarwinControlSetSuperview(uiDarwinControl(g->child), [g->box contentView]);
 		uiDarwinControlSyncEnableState(uiDarwinControl(g->child), uiControlEnabledToUser(uiControl(g)));
@@ -180,11 +177,10 @@ uiGroup *uiNewGroup(const char *title)
 	g->box = [[NSBox alloc] initWithFrame:NSZeroRect];
 	[g->box setTitle:uiprivToNSString(title)];
 	[g->box setBoxType:NSBoxPrimary];
-	[g->box setBorderType:NSLineBorder];
 	[g->box setTransparent:NO];
 	[g->box setTitlePosition:NSAtTop];
 	// we can't use uiDarwinSetControlFont() because the selector is different
-	[g->box setTitleFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
+	[g->box setTitleFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSControlSizeSmall]]];
 
 	// default to low hugging to not hug edges
 	g->horzHuggingPri = NSLayoutPriorityDefaultLow;

@@ -89,7 +89,7 @@ static void setBackgroundColor(uiprivTableView *t, NSTableRowView *rv, NSInteger
 
 		// this usage is primarily a guess; hopefully it is correct for the non-two color case... (TODO)
 		// it does seem to be correct for the two-color case, judging from comparing against the value of backgroundColor before changing it (and no, nil does not work; it just sets to white)
-		colors = [NSColor controlAlternatingRowBackgroundColors];
+		colors = [NSColor alternatingContentBackgroundColors];
 		index = row % [colors count];
 		color = (NSColor *) [colors objectAtIndex:index];
 	}

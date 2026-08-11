@@ -1,7 +1,7 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
-#define defaultStyleMask (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
+#define defaultStyleMask (NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable)
 
 struct uiWindow {
 	uiDarwinControl c;
@@ -29,9 +29,9 @@ static NSUInteger windowStyleMask(uiWindow *w)
 {
 	NSUInteger styleMask;
 
-	styleMask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
+	styleMask = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
 	if (w->resizeable)
-		styleMask |= NSResizableWindowMask;
+		styleMask |= NSWindowStyleMaskResizable;
 	return styleMask;
 }
 
@@ -106,7 +106,7 @@ static NSUInteger windowStyleMask(uiWindow *w)
 	if (!w->suppressSizeChanged)
 		w->fullscreen = 0;
 	if (w->borderless)
-		[w->window setStyleMask:NSBorderlessWindowMask];
+		[w->window setStyleMask:NSWindowStyleMaskBorderless];
 }
 
 - (void)windowDidBecomeKey:(NSNotification *)note
@@ -241,8 +241,21 @@ static void uiWindowChildEdgeHuggingChanged(uiDarwinControl *c)
 	windowRelayout(w);
 }
 
-uiDarwinControlDefaultHuggingPriority(uiWindow, window)
-uiDarwinControlDefaultSetHuggingPriority(uiWindow, window)
+static NSLayoutPriority uiWindowHuggingPriority(uiDarwinControl *c, NSLayoutConstraintOrientation orientation)
+{
+	uiWindow *w = uiWindow(c);
+
+	// NSWindow isn't an NSView, so forward to the content view
+	return [[w->window contentView] contentHuggingPriorityForOrientation:orientation];
+}
+
+static void uiWindowSetHuggingPriority(uiDarwinControl *c, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
+{
+	uiWindow *w = uiWindow(c);
+
+	// NSWindow isn't an NSView, so forward to the content view
+	[[w->window contentView] setContentHuggingPriority:priority forOrientation:orientation];
+}
 
 static void uiWindowChildVisibilityChanged(uiDarwinControl *c)
 {
@@ -345,7 +358,7 @@ void uiWindowSetFullscreen(uiWindow *w, int fullscreen)
 	[w->window toggleFullScreen:w->window];
 	w->suppressSizeChanged = NO;
 	if (!w->fullscreen && w->borderless)		// borderless doesn't play nice with fullscreen; restore borderless after removing
-		[w->window setStyleMask:NSBorderlessWindowMask];
+		[w->window setStyleMask:NSWindowStyleMaskBorderless];
 }
 
 void uiWindowOnContentSizeChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
@@ -382,7 +395,7 @@ void uiWindowSetBorderless(uiWindow *w, int borderless)
 	if (w->borderless) {
 		// borderless doesn't play nice with fullscreen; wait for later
 		if (!w->fullscreen)
-			[w->window setStyleMask:NSBorderlessWindowMask];
+			[w->window setStyleMask:NSWindowStyleMaskBorderless];
 	} else {
 		[w->window setStyleMask:windowStyleMask(w)];
 	}
@@ -427,9 +440,9 @@ void uiWindowSetResizeable(uiWindow *w, int resizeable)
 {
 	w->resizeable = resizeable;
 	if(resizeable) {
-		[w->window setStyleMask:[w->window styleMask] | NSResizableWindowMask];
+		[w->window setStyleMask:[w->window styleMask] | NSWindowStyleMaskResizable];
 	} else {
-		[w->window setStyleMask:[w->window styleMask] & ~NSResizableWindowMask];
+		[w->window setStyleMask:[w->window styleMask] & ~NSWindowStyleMaskResizable];
 	}
 }
 

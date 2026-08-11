@@ -113,7 +113,7 @@ static uiForEach featuresHash(const uiOpenTypeFeatures *otf, char a, char b, cha
 	BOOL hasHash;
 	NSUInteger hash;
 }
-- (void)addAttribute:(uiAttribute *)attr;
+- (void)addAttribute:(const uiAttribute *)attr;
 - (CTFontRef)toCTFontWithDefaultFont:(uiFontDescriptor *)defaultFont;
 @end
 
@@ -155,14 +155,14 @@ static uiForEach featuresHash(const uiOpenTypeFeatures *otf, char a, char b, cha
 	return ret;
 }
 
-- (void)addAttribute:(uiAttribute *)attr
+- (void)addAttribute:(const uiAttribute *)attr
 {
 	int index;
 
 	index = toc[uiAttributeGetType(attr)];
 	if (self->attrs[index] != NULL)
 		uiprivAttributeRelease(self->attrs[index]);
-	self->attrs[index] = uiprivAttributeRetain(attr);
+	self->attrs[index] = uiprivAttributeRetain((uiAttribute *) attr);
 	self->hasHash = NO;
 }
 
@@ -250,7 +250,7 @@ static uiForEach featuresHash(const uiOpenTypeFeatures *otf, char a, char b, cha
 
 @end
 
-static void addFontAttributeToRange(struct foreachParams *p, size_t start, size_t end, uiAttribute *attr)
+static void addFontAttributeToRange(struct foreachParams *p, size_t start, size_t end, const uiAttribute *attr)
 {
 	uiprivCombinedFontAttr *cfa;
 	CFRange range;

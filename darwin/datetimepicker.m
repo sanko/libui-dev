@@ -31,9 +31,9 @@ struct uiDateTimePicker {
 		[self setBordered:NO];
 		[self setBezeled:YES];
 		[self setDrawsBackground:YES];
-		[self setDatePickerStyle:NSTextFieldAndStepperDatePickerStyle];
+		[self setDatePickerStyle:NSDatePickerStyleTextFieldAndStepper];
 		[self setDatePickerElements:elements];
-		[self setDatePickerMode:NSSingleDateMode];
+		[self setDatePickerMode:NSDatePickerModeSingle];
 
 		[self setDelegate:self];
 	}
@@ -120,7 +120,7 @@ static uiDateTimePicker *finishNewDateTimePicker(NSDatePickerElementFlags elemen
 	uiDarwinNewControl(uiDateTimePicker, d);
 
 	d->dp = [[uiprivDatePicker alloc] initWithElements:elements uiDateTimePicker:d];
-	uiDarwinSetControlFont(d->dp, NSRegularControlSize);
+	uiDarwinSetControlFont(d->dp, NSControlSizeRegular);
 
 	uiDateTimePickerOnChanged(d, defaultOnChanged, NULL);
 
@@ -129,15 +129,15 @@ static uiDateTimePicker *finishNewDateTimePicker(NSDatePickerElementFlags elemen
 
 uiDateTimePicker *uiNewDateTimePicker(void)
 {
-	return finishNewDateTimePicker(NSYearMonthDayDatePickerElementFlag | NSHourMinuteSecondDatePickerElementFlag);
+	return finishNewDateTimePicker(NSDatePickerElementFlagYearMonthDay | NSDatePickerElementFlagHourMinuteSecond);
 }
 
 uiDateTimePicker *uiNewDatePicker(void)
 {
-	return finishNewDateTimePicker(NSYearMonthDayDatePickerElementFlag);
+	return finishNewDateTimePicker(NSDatePickerElementFlagYearMonthDay);
 }
 
 uiDateTimePicker *uiNewTimePicker(void)
 {
-	return finishNewDateTimePicker(NSHourMinuteSecondDatePickerElementFlag);
+	return finishNewDateTimePicker(NSDatePickerElementFlagHourMinuteSecond);
 }

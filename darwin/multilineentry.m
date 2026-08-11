@@ -158,9 +158,7 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 
 	e->tv = [[intrinsicSizeTextView alloc] initWithFrame:NSZeroRect e:e];
 	e->readonly = NO;
-if (@available(macOS 10.14, *)) {
 	[e->tv setUsesAdaptiveColorMappingForDarkAppearance:YES];
-}
 
 	// verified against Interface Builder for a sufficiently customized text view
 
@@ -235,7 +233,7 @@ if (@available(macOS 10.14, *)) {
 	[[e->tv textContainer] setContainerSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
 
 	// don't use uiDarwinSetControlFont() directly; we have to do a little extra work to set the font
-	font = [NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]];
+	font = [NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSControlSizeRegular]];
 	[e->tv setTypingAttributes:[NSDictionary
 		dictionaryWithObject:font
 		forKey:NSFontAttributeName]];

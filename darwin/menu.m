@@ -200,7 +200,7 @@ static uiWindow *currentMenuEventWindow(void)
 	// to do that, we simply leave the target as nil
 	[appMenu addItem:item];
 	item = [[[NSMenuItem alloc] initWithTitle:@"Hide Others" action:@selector(hideOtherApplications:) keyEquivalent:@"h"] autorelease];
-	[item setKeyEquivalentModifierMask:(NSAlternateKeyMask | NSCommandKeyMask)];
+	[item setKeyEquivalentModifierMask:(NSEventModifierFlagOption | NSEventModifierFlagCommand)];
 	[appMenu addItem:item];
 	item = [[[NSMenuItem alloc] initWithTitle:@"Show All" action:@selector(unhideAllApplications:) keyEquivalent:@""] autorelease];
 	[appMenu addItem:item];
@@ -254,12 +254,12 @@ void uiMenuItemOnClicked(uiMenuItem *item, void (*f)(uiMenuItem *, uiWindow *, v
 
 int uiMenuItemChecked(uiMenuItem *item)
 {
-	return [item->item state] != NSOffState;
+	return [item->item state] != NSControlStateValueOff;
 }
 
 void uiMenuItemSetChecked(uiMenuItem *item, int checked)
 {
-	[item->item setState:checked ? NSOnState : NSOffState];
+	[item->item setState:checked ? NSControlStateValueOn : NSControlStateValueOff];
 }
 
 static uiMenuItem *newItem(uiMenu *m, int type, const char *name)

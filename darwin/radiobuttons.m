@@ -124,11 +124,11 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 
 	b = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[b setTitle:uiprivToNSString(text)];
-	[b setButtonType:NSRadioButton];
+	[b setButtonType:NSButtonTypeRadio];
 	// doesn't seem to have an associated bezel style
 	[b setBordered:NO];
 	[b setTransparent:NO];
-	uiDarwinSetControlFont(b, NSRegularControlSize);
+	uiDarwinSetControlFont(b, NSControlSizeRegular);
 	[b setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 	[b setTarget:r->delegate];
@@ -216,12 +216,12 @@ void uiRadioButtonsSetSelected(uiRadioButtons *r, int n)
 
 	r->selected = n;
 
-	state = NSOnState;
+	state = NSControlStateValueOn;
 	if (n == -1) {
 		n = previous;
 		if (n == -1)		// from nothing to nothing; do nothing
 			return;
-		state = NSOffState;
+		state = NSControlStateValueOff;
 	}
 	b = (NSButton *) [r->buttons objectAtIndex:n];
 	[b setState:state];
