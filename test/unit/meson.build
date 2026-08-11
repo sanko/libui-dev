@@ -1,4 +1,5 @@
-cmocka_deps = dependency('cmocka', version: '>=1.1.8',
+# the vendored cmocka (2.0.2) self-reports version 1.1.5
+cmocka_deps = dependency('cmocka', version: '>=1.1.5',
 	fallback : ['cmocka', 'cmocka_dep'], default_options: ['default_library=static'])
 
 libui_unit_sources = [

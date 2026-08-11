@@ -42,7 +42,8 @@ endif
 executable('tester', libui_test_sources,
 	dependencies: libui_binary_deps,
 	link_with: libui_libui,
-	win_subsystem: 'console',
+	win_subsystem: 'windows',
+	link_args: libui_MSVC ? ['/ENTRY:mainCRTStartup'] : [],
 	install: false)
 
 subdir('unit')

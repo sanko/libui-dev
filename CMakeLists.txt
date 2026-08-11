@@ -197,6 +197,11 @@ if(LIBUI_COMPILE_EXAMPLES)
             # are an upstream debug aid for exposing theming bugs and would make
             # InitCommonControlsEx() fail in shared builds.
             target_compile_definitions(${name} PRIVATE _UI_STATIC)
+            # GUI subsystem so the app doesn't pop up a console window behind
+            # itself. main() still works as the entry point: MSVC links with
+            # /ENTRY:mainCRTStartup below, and MinGW's -mwindows keeps calling
+            # main().
+            set_target_properties(${name} PROPERTIES WIN32_EXECUTABLE TRUE)
         endif()
         if(MSVC)
             target_link_options(${name} PRIVATE /ENTRY:mainCRTStartup)
@@ -224,6 +229,8 @@ if(LIBUI_COMPILE_EXAMPLES)
         test/unit/tooltip.c)
     target_include_directories(unit PRIVATE ${PROJECT_SOURCE_DIR}/test/unit)
     target_link_libraries(unit PRIVATE cmocka)
+    # the unit runner reports results on stdout; keep it console-subsystem
+    set_target_properties(unit PROPERTIES WIN32_EXECUTABLE FALSE)
     enable_testing()
     add_test(NAME unit COMMAND unit)
 
