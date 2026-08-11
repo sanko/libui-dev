@@ -218,7 +218,8 @@ if(LIBUI_COMPILE_EXAMPLES)
         test/unit/editablecombobox.c
         test/unit/checkbox.c test/unit/radiobuttons.c test/unit/tab.c
         test/unit/entry.c test/unit/menu.c test/unit/progressbar.c
-        test/unit/drawmatrix.c test/unit/attrstr.c test/unit/window.c)
+        test/unit/drawmatrix.c test/unit/attrstr.c test/unit/window.c
+        test/unit/tooltip.c)
     target_include_directories(unit PRIVATE ${PROJECT_SOURCE_DIR}/test/unit)
     target_link_libraries(unit PRIVATE cmocka)
     enable_testing()

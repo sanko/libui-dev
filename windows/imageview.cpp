@@ -187,6 +187,7 @@ static void uiImageViewDestroy(uiControl *c)
 		uiFreeImage(iv->image);
 		iv->image = NULL;
 	}
+	uiprivDestroyTooltip(c);
 	uiWindowsEnsureDestroyWindow(iv->hwnd);
 	uiFreeControl(uiControl(iv));
 }

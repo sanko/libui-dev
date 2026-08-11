@@ -26,6 +26,7 @@ void uiComboboxDestroy(uiControl *cc)
 	uiCombobox *c = uiCombobox(cc);
 
 	uiWindowsUnregisterWM_COMMANDHandler(c->hwnd);
+	uiprivDestroyTooltip(cc);
 	uiWindowsEnsureDestroyWindow(c->hwnd);
 	uiFreeControl(uiControl(c));
 }

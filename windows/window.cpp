@@ -207,6 +207,7 @@ static void uiWindowDestroy(uiControl *c)
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
 	// and finally free ourselves
+	uiprivDestroyTooltip(c);
 	windows.erase(w);
 	uiWindowsEnsureDestroyWindow(w->hwnd);
 	uiFreeControl(uiControl(w));

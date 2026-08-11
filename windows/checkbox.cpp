@@ -32,6 +32,7 @@ static void uiCheckboxDestroy(uiControl *cc)
 	uiCheckbox *c = uiCheckbox(cc);
 
 	uiWindowsUnregisterWM_COMMANDHandler(c->hwnd);
+	uiprivDestroyTooltip(cc);
 	uiWindowsEnsureDestroyWindow(c->hwnd);
 	uiFreeControl(uiControl(c));
 }

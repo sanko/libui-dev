@@ -19,6 +19,7 @@ libui_unit_sources = [
         'drawmatrix.c',
         'attrstr.c',
         'window.c',
+        'tooltip.c',
 ]
 
 if libui_OS == 'windows'
