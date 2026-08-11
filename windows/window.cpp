@@ -7,6 +7,7 @@ struct uiWindow {
 	uiWindowsControl c;
 	HWND hwnd;
 	HMENU menubar;
+	HICON icon;
 	uiControl *child;
 	BOOL shownOnce;
 	int visible;
@@ -208,6 +209,8 @@ static void uiWindowDestroy(uiControl *c)
 		freeMenubar(w->menubar);
 	// and finally free ourselves
 	uiprivDestroyTooltip(c);
+	if (w->icon != NULL)
+		DestroyIcon(w->icon);
 	windows.erase(w);
 	uiWindowsEnsureDestroyWindow(w->hwnd);
 	uiFreeControl(uiControl(w));
@@ -513,6 +516,34 @@ void uiWindowSetResizeable(uiWindow *w, int resizeable)
 	updateFrame(w);
 }
 
+void uiWindowSetIcon(uiWindow *w, const void *data, size_t length)
+{
+	// https://en.wikipedia.org/wiki/ICO_(file_format)#Header
+	uint16_t *header;
+	size_t offset;
+	HICON icon;
+
+	if (data == NULL)
+		return;
+	header = (uint16_t *) data;
+	if (length < 6 || header[1] != 0x1)
+		return;
+	offset = 3 * sizeof(uint16_t) + (size_t) 16 * header[2];
+	if (length < offset)
+		return;
+
+	icon = CreateIconFromResource(((PBYTE) data) + offset, (DWORD) (length - offset), TRUE, 0x30000);
+	if (icon == NULL) {
+		logLastError(L"error creating window icon");
+		return;
+	}
+	if (w->icon != NULL)
+		DestroyIcon(w->icon);
+	w->icon = icon;
+	SendMessage(w->hwnd, WM_SETICON, (WPARAM) ICON_SMALL, (LPARAM) icon);
+	SendMessage(w->hwnd, WM_SETICON, (WPARAM) ICON_BIG, (LPARAM) icon);
+}
+
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
 // TODO use clientSizeToWindowSize()
 static void setClientSize(uiWindow *w, int width, int height, BOOL hasMenubar, DWORD style, DWORD exstyle)
@@ -546,6 +577,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindowsNewControl(uiWindow, w);
 
 	w->resizeable = TRUE;
+	w->icon = NULL;
 	hasMenubarBOOL = FALSE;
 	if (hasMenubar)
 		hasMenubarBOOL = TRUE;

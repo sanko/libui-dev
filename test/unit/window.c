@@ -145,6 +145,38 @@ static void windowSetPositionNoCallback(void **state)
 	uiWindowSetPosition(w, 1, 1);
 }
 
+static const unsigned char windowTestIcon[] = {
+	// ICO header: reserved, type (1 = icon), image count (1)
+	0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
+	// ICONDIRENTRY
+	0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x20, 0x00,
+	0x30, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00,
+	// BITMAPINFOHEADER (1x1, 32bpp)
+	0x28, 0x00, 0x00, 0x00,
+	0x01, 0x00, 0x00, 0x00,
+	0x02, 0x00, 0x00, 0x00,
+	0x01, 0x00,
+	0x20, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	// XOR data: 1 pixel BGRA (opaque red)
+	0x00, 0x00, 0xFF, 0xFF,
+	// AND data: 1 row, 1bpp, padded to a DWORD
+	0x00, 0x00, 0x00, 0x00,
+};
+
+static void windowSetIcon(void **state)
+{
+	uiWindow *w = uiWindowFromState(state);
+
+	uiWindowSetIcon(w, windowTestIcon, sizeof(windowTestIcon));
+	uiWindowSetIcon(w, windowTestIcon, sizeof(windowTestIcon));
+}
+
 #define windowUnitTest(f) cmocka_unit_test_setup_teardown((f), \
 		unitTestSetup, unitTestTeardown)
 
@@ -162,6 +194,7 @@ int windowRunUnitTests(void)
 		windowUnitTest(windowMarginedSetContentSize),
 		windowUnitTest(windowSetContentSizeNoCallback),
 		windowUnitTest(windowSetPositionNoCallback),
+		windowUnitTest(windowSetIcon),
 	};
 
 	return cmocka_run_group_tests_name("uiWindow", tests, unitTestsSetup, unitTestsTeardown);

@@ -261,6 +261,19 @@ void uiWindowSetTitle(uiWindow *w, const char *title)
 	[w->window setTitle:uiprivToNSString(title)];
 }
 
+void uiWindowSetIcon(uiWindow *w, const void *data, size_t length)
+{
+	NSData *iconData;
+	NSImage *image;
+
+	iconData = [NSData dataWithBytes:data length:length];
+	image = [[NSImage alloc] initWithData:iconData];
+	if (image == nil)
+		return;
+	[uiprivNSApp() setApplicationIconImage:image];
+	[image release];
+}
+
 void uiWindowPosition(uiWindow *w, int *x, int *y)
 {
 	NSRect screen;

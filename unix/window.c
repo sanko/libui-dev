@@ -199,6 +199,33 @@ void uiWindowSetTitle(uiWindow *w, const char *title)
 	gtk_window_set_title(w->window, title);
 }
 
+void uiWindowSetIcon(uiWindow *w, const void *data, size_t length)
+{
+	GdkPixbufLoader *loader;
+	GError *err = NULL;
+	GdkPixbuf *pixbuf;
+
+	loader = gdk_pixbuf_loader_new();
+	if (loader == NULL)
+		return;
+	if (!gdk_pixbuf_loader_write(loader, data, length, &err)) {
+		g_warning("uiWindowSetIcon: %s", err->message);
+		g_error_free(err);
+		g_object_unref(loader);
+		return;
+	}
+	if (!gdk_pixbuf_loader_close(loader, &err)) {
+		g_warning("uiWindowSetIcon: %s", err->message);
+		g_error_free(err);
+		g_object_unref(loader);
+		return;
+	}
+	pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
+	if (pixbuf != NULL)
+		gtk_window_set_icon(w->window, pixbuf);
+	g_object_unref(loader);
+}
+
 void uiWindowPosition(uiWindow *w, int *x, int *y)
 {
 	gtk_window_get_position(w->window, x, y);

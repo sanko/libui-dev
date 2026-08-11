@@ -4173,6 +4173,20 @@ _UI_EXTERN void uiFreeTableSelection(uiTableSelection* s);
  */
 _UI_EXTERN void uiControlSetTooltip(uiControl *c, const char *tooltip);
 
+/**
+ * Sets the window icon.
+ *
+ * @param w uiWindow instance.
+ * @param data Icon image data.\n
+ *             On Windows this has to be a valid ICO file buffer.\n
+ *             On other platforms any image format supported by the system can be used.\n
+ *             Data is copied internally. Ownership is not transferred.
+ * @param length Length of the icon data buffer in bytes.
+ * @note Not supported on all platforms yet.
+ * @memberof uiWindow
+ */
+_UI_EXTERN void uiWindowSetIcon(uiWindow *w, const void *data, size_t length);
+
 #ifdef __cplusplus
 }
 #endif
