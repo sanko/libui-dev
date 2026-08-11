@@ -23,6 +23,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// provides the LIBUI_VERSION_* macros
+#include "ui_version.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -2819,7 +2822,7 @@ _UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, dou
  *
  * `img` is borrowed only for the duration of this call. Image data is not
  * copied or retained by uiDrawImage().
- * 
+ *
  * @param c Drawing context.
  * @param img Image to draw. Must not be NULL and must remain valid for the
  *            duration of this call.

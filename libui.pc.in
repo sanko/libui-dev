@@ -5,6 +5,6 @@ includedir="${prefix}/include"
 
 Name: libui
 Description: A cross-platform UI library
-Version: 0.1.0
+Version: @PROJECT_VERSION@
 Cflags: -I${includedir}/ui
 Libs: -Llib -Llib64 -l@LIBUI_LINK_NAME@

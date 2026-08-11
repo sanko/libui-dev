@@ -1,7 +1,14 @@
 # 17 march 2019
 
 # TODO remove cpp from this list once https://github.com/mesonbuild/meson/issues/5181 is settled; move it to the OS checks and under cpp-multithread
+# The version is defined only in ui_version.h (the single source of truth).
+# meson needs the version at project() time and can't read files itself yet,
+# so we shell out to the Python interpreter that meson itself runs on. We parse
+# the three numeric macros and join them, matching what CMakeLists.txt does.
 project('libui', ['c', 'cpp'],
+	version: run_command(find_program('python3', 'python'), '-c',
+		'import re; s=open("ui_version.h").read(); f=lambda n: re.search(r"#define LIBUI_VERSION_"+n+r" ([0-9]+)", s).group(1); print(".".join(f(x) for x in ("MAJOR","MINOR","PATCH")))',
+		check: true).stdout().strip(),
 	meson_version: '>=0.58.0',
 	default_options: [
 		'buildtype=debug',				# build debug by default
@@ -122,6 +129,10 @@ add_project_arguments(libui_project_compile_args,
 add_project_link_arguments(libui_project_link_args,
 	language: ['c', 'cpp', 'objc'])
 
+# The source root (contains ui.h and ui_version.h); used by the examples, which
+# include <ui.h>.
+libui_include_dirs = [include_directories('.')]
+
 libui_sources = []
 libui_deps = []
 libui_rpath = ''
@@ -138,17 +149,27 @@ else
 endif
 libui_libui = library('ui', libui_sources,
 	dependencies: libui_deps,
+	include_directories: libui_include_dirs,
 	build_rpath: libui_rpath,
 	install_rpath: libui_rpath,
 	name_prefix: 'lib',		# always call it libui, even in Windows DLLs
+	version: meson.project_version(),
 	install: true,
 	gnu_symbol_visibility: 'hidden',
 	c_args: ['-Dlibui_EXPORTS'],
 	cpp_args: ['-Dlibui_EXPORTS'],
 	objc_args: ['-Dlibui_EXPORTS'])
 install_headers('ui.h')
+install_headers('ui_version.h')
 
-# TODO when the API is stable enough to be versioned, create a pkg-config file (https://mesonbuild.com/Pkgconfig-module.html) and a declare_dependency() section too
+# installs ui.pc; the library version above drives the soname
+libui_pkgconfig = import('pkgconfig')
+libui_pkgconfig.generate(
+	libui_libui,
+	name: 'libui',
+	description: 'A cross-platform UI library',
+	filebase: 'ui',
+	version: meson.project_version())
 
 libui_binary_deps = []
 if libui_mode == 'static'

@@ -1,12 +1,48 @@
-# CMake build for libui.
+# cmake build script for libui-dev
 #
-# Adapted from petabyt/libui-dev's CMakeLists.txt. The meson build remains the
-# reference build; this lets us build without being tied to what's available on
-# meson's wrapdb.
+# libui-dev will follow the semantic versioning scheme. See https://semver.org/
+#
+# The official semantic version is stored in 'ui_version.h' using standard C macros:
+#      #define LIBUI_VERSION_MAJOR <num>
+#      #define LIBUI_VERSION_MINOR <num>
+#      #define LIBUI_VERSION_PATCH <num>
+#
+# cmake parses these macros at configure time to set `PROJECT_VERSION`. DO NOT
+# hardcode version numbers in build scripts.
+#
+# Building from an untagged Git commit automatically appends the short commit hash
+# to `LIBUI_VERSION_STRING` (e.g., "0.4.2-a1b2c3d").
+#
+# This is controlled by the Cmake option `LIBUI_INCLUDE_GIT_HASH`.
+# Example: `cmake -B build -DLIBUI_INCLUDE_GIT_HASH=OFF`
+#
+#      - AUTO (default) : Appends the git commit hash ONLY if the build is NOT
+#                         on an exact tagged commit. If on an exact tag, it verifies
+#                         that the tag version matches ui_version.h and warns
+#                         if there is a mismatch.
+#      - ON             : Always appends the Git commit hash regardless of tags.
+#      - OFF            : Never appends the Git commit hash (clean semver only).
+#
+# When active, cmake passes `-DLIBUI_GIT_COMMIT=<hash>` as a PUBLIC compile
+# definition on the library target. This propagates to 'ui_version.h' for both
+# libui and any downstream executables linking against `LibUI::LibUI`.
 
 cmake_minimum_required(VERSION 3.15)
 
-project(libui LANGUAGES C CXX)
+# Parse version macros directly from ui_version.h
+file(STRINGS ui_version.h LIBUI_VERSION_MAJOR_STRING REGEX "^#define LIBUI_VERSION_MAJOR ([0-9]+)$")
+string(REGEX MATCH "[0-9]+" LIBUI_VERSION_MAJOR "${LIBUI_VERSION_MAJOR_STRING}")
+file(STRINGS ui_version.h LIBUI_VERSION_MINOR_STRING REGEX "^#define LIBUI_VERSION_MINOR ([0-9]+)$")
+string(REGEX MATCH "[0-9]+" LIBUI_VERSION_MINOR "${LIBUI_VERSION_MINOR_STRING}")
+file(STRINGS ui_version.h LIBUI_VERSION_PATCH_STRING REGEX "^#define LIBUI_VERSION_PATCH ([0-9]+)$")
+string(REGEX MATCH "[0-9]+" LIBUI_VERSION_PATCH "${LIBUI_VERSION_PATCH_STRING}")
+
+set(PROJECT_VERSION "${LIBUI_VERSION_MAJOR}.${LIBUI_VERSION_MINOR}.${LIBUI_VERSION_PATCH}")
+set(PROJECT_VERSION_MAJOR "${LIBUI_VERSION_MAJOR}")
+set(PROJECT_VERSION_MINOR "${LIBUI_VERSION_MINOR}")
+set(PROJECT_VERSION_PATCH "${LIBUI_VERSION_PATCH}")
+
+project(libui VERSION ${PROJECT_VERSION} LANGUAGES C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
@@ -24,10 +60,15 @@ if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
 endif()
 
+# Build Options
 option(LIBUI_COMPILE_EXAMPLES "Compile example programs and tests" OFF)
 option(LIBUI_INCLUDE_INSTALL "Include install() declaration" OFF)
 option(LIBUI_COMPILE_GTK3 "Compile GTK3 on Linux" ON)
 option(LIBUI_BUILD_SHARED "Build libui as a shared library" OFF)
+
+# Git Version String Option (AUTO, ON, or OFF)
+set(LIBUI_INCLUDE_GIT_HASH "AUTO" CACHE STRING "Include Git commit hash in version string (AUTO, ON, or OFF)")
+set_property(CACHE LIBUI_INCLUDE_GIT_HASH PROPERTY STRINGS "AUTO" "ON" "OFF")
 
 if(LIBUI_BUILD_SHARED)
     set(LIBUI_LIB_TYPE SHARED)
@@ -67,6 +108,7 @@ else()
     endif()
 endif()
 
+# Platform-specific Backends
 if(WIN32)
     file(GLOB LIBUI_WIN CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/windows/*.cpp)
 
@@ -77,7 +119,7 @@ if(WIN32)
     target_compile_options(ui_win32 PRIVATE ${LIBUI_COMMON_FLAGS})
     target_link_libraries(ui_win32 PUBLIC
         user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite
-        ole32 oleaut32 oleacc uuid windowscodecs)
+        ole32 oleaut32 oleacc uuid windowscodecs shell32)
     if(MINGW)
         # don't require shipping the MinGW-w64 DLLs
         target_link_libraries(ui_win32 PUBLIC -static -static-libgcc -static-libstdc++)
@@ -118,14 +160,7 @@ else()
 endif()
 
 if(WIN32)
-    # The exes embed the app manifest via their resources.rc, so keep the
-    # toolchain from embedding its own default one too:
-    #
-    #  - cl.exe/clang-cl (link.exe): disable manifest generation, otherwise the
-    #    linker emits (or replaces ours) an extra RT_MANIFEST resource.
-    #  - plain clang (MSVC ABI): CMake's Windows-Clang.cmake bakes a
-    #    `-Xlinker /MANIFEST:EMBED` into the link rule, which makes lld-link
-    #    embed a second manifest and fail the link (as seen in CI).
+    # Prevent toolchains from embedding duplicate app manifests
     if(MSVC)
         add_link_options(/MANIFEST:NO)
     endif()
@@ -137,10 +172,67 @@ if(WIN32)
     endif()
 endif()
 
+# Target Properties & Aliases
 add_library(LibUI::LibUI ALIAS ${LIBUI_LIB})
 set_target_properties(${LIBUI_LIB} PROPERTIES OUTPUT_NAME "ui")
+set_target_properties(${LIBUI_LIB} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR})
 set(LIBUI_LINK_NAME "ui")
 
+# git Versioning and Tag Validation
+if(NOT LIBUI_INCLUDE_GIT_HASH STREQUAL "OFF")
+    find_package(Git QUIET)
+    if(Git_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+        set(SHOULD_APPEND_HASH FALSE)
+
+        # Check if HEAD is on an exact Git tag
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} describe --exact-match --tags
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+            RESULT_VARIABLE GIT_TAG_RESULT
+            OUTPUT_VARIABLE GIT_TAG_NAME
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+
+        if(GIT_TAG_RESULT EQUAL 0)
+            # We are on a tagged commit -> Validate Git tag against ui_version.h
+            string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" TAG_VERSION "${GIT_TAG_NAME}")
+            if(TAG_VERSION AND NOT TAG_VERSION STREQUAL PROJECT_VERSION)
+                message(WARNING "Git tag '${GIT_TAG_NAME}' (version ${TAG_VERSION}) does not match ui_version.h version (${PROJECT_VERSION})!")
+            endif()
+        else()
+            # Not on a tagged commit -> Append commit hash if mode is AUTO
+            if(LIBUI_INCLUDE_GIT_HASH STREQUAL "AUTO")
+                set(SHOULD_APPEND_HASH TRUE)
+            endif()
+        endif()
+
+        # Explicit manual overrides for LIBUI_INCLUDE_GIT_HASH
+        if(LIBUI_INCLUDE_GIT_HASH STREQUAL "ON")
+            set(SHOULD_APPEND_HASH TRUE)
+        elseif(LIBUI_INCLUDE_GIT_HASH STREQUAL "OFF")
+            set(SHOULD_APPEND_HASH FALSE)
+        endif()
+
+        # Fetch short hash and pass as a PUBLIC compile definition
+        if(SHOULD_APPEND_HASH)
+            execute_process(
+                COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                OUTPUT_VARIABLE LIBUI_GIT_COMMIT_HASH
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET
+            )
+            if(LIBUI_GIT_COMMIT_HASH)
+                target_compile_definitions(${LIBUI_LIB} PUBLIC LIBUI_GIT_COMMIT=${LIBUI_GIT_COMMIT_HASH})
+            endif()
+        endif()
+    endif()
+endif()
+
+# Installation Configuration
 if(LIBUI_INCLUDE_INSTALL)
     configure_file(libui.pc.in ui.pc @ONLY)
     include(GNUInstallDirs)
@@ -151,6 +243,7 @@ if(LIBUI_INCLUDE_INSTALL)
         ui_windows.h
         ui_darwin.h
         ui_unix.h
+        ui_version.h
         DESTINATION include/ui
     )
     install(
@@ -230,6 +323,7 @@ if(LIBUI_COMPILE_EXAMPLES)
     enable_testing()
     # each component runs as its own process so ctest reports failures per
     # component instead of one blob for the whole suite
+
     add_test(NAME unit-attrstr COMMAND unit attrstr)
     add_test(NAME unit-button COMMAND unit button)
     add_test(NAME unit-checkbox COMMAND unit checkbox)

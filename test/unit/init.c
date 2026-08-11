@@ -1,5 +1,27 @@
 #include "unit.h"
 
+#include <stdio.h>
+
+// ui_version.h is the single source of truth for the version; these checks
+// verify the derived macros are consistent with the three numeric ones.
+// LIBUI_VERSION_STRING is checked against LIBUI_VERSION_STRING_BASE only: in
+// builds that append the git commit hash, LIBUI_VERSION_STRING is "x.y.z-hash".
+static void versionMacros(void **state)
+{
+	int major, minor, patch;
+	char versionString[32];
+
+	assert_int_equal(sscanf(LIBUI_VERSION_STRING_BASE, "%d.%d.%d",
+		&major, &minor, &patch), 3);
+	assert_int_equal(major, LIBUI_VERSION_MAJOR);
+	assert_int_equal(minor, LIBUI_VERSION_MINOR);
+	assert_int_equal(patch, LIBUI_VERSION_PATCH);
+	assert_int_equal(LIBUI_VERSION_INT, LIBUI_VERSION_INT_HELPER(major, minor, patch));
+	snprintf(versionString, sizeof versionString, "%d.%d.%d",
+		LIBUI_VERSION_MAJOR, LIBUI_VERSION_MINOR, LIBUI_VERSION_PATCH);
+	assert_string_equal(LIBUI_VERSION_STRING_BASE, versionString);
+}
+
 static void initUninit(void **state)
 {
 	uiInitOptions o = {0};
@@ -103,6 +125,7 @@ static void timerRepeatThenStop(void **state)
 int initRunUnitTests(void)
 {
 	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(versionMacros),
 		cmocka_unit_test(initUninit),
 		cmocka_unit_test(initUninitTwice),
 		cmocka_unit_test(setAppMetadataThenInit),
