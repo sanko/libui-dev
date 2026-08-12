@@ -646,3 +646,111 @@ void uiDrawFreeBitmap(uiDrawBitmap *bmp)
 	uiprivFree(bmp->data);
 	uiprivFree(bmp);
 }
+
+// image buffer API
+
+// The image buffer is stored the same way as the bitmap above (32-bit
+// little-endian memory order B, G, R, X/A), except that the alpha channel is
+// kept when the buffer was created with alpha.
+static CGImageRef uiprivImageBufferCGImage(const unsigned char *data, int stride, int width, int height, int alpha)
+{
+	CGColorSpaceRef colorspace;
+	CGDataProviderRef provider;
+	CGImageRef cg;
+	CGBitmapInfo bitmapInfo;
+
+	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+	if (colorspace == NULL)
+		return NULL;
+	provider = CGDataProviderCreateWithData(NULL, data, (size_t) stride * height, NULL);
+	if (provider == NULL) {
+		CGColorSpaceRelease(colorspace);
+		return NULL;
+	}
+	bitmapInfo = kCGBitmapByteOrder32Little;
+	if (alpha)
+		bitmapInfo |= kCGImageAlphaPremultipliedFirst;
+	else
+		bitmapInfo |= kCGImageAlphaNoneSkipFirst;
+	cg = CGImageCreate(width, height,
+		8, 32,
+		stride,
+		colorspace,
+		bitmapInfo,
+		provider,
+		NULL, true, kCGRenderingIntentDefault);
+	CGDataProviderRelease(provider);
+	CGColorSpaceRelease(colorspace);
+	return cg;
+}
+
+uiImageBuffer *uiNewImageBuffer(uiDrawContext *c, int width, int height, int alpha)
+{
+	uiImageBuffer *buf;
+
+	buf = uiprivNew(uiImageBuffer);
+	buf->Width = width;
+	buf->Height = height;
+	buf->Stride = width * 4;
+	buf->alpha = alpha;
+	buf->data = (unsigned char *) uiprivAlloc((size_t) buf->Stride * height, "uiImageBuffer data");
+	buf->cg = uiprivImageBufferCGImage(buf->data, buf->Stride, width, height, alpha);
+	if (buf->cg == NULL)
+		uiprivImplBug("error creating image buffer image");
+	return buf;
+}
+
+void uiImageBufferUpdate(uiImageBuffer *buf, const void *data)
+{
+	CGImageRef cg;
+
+	memcpy(buf->data, data, (size_t) buf->Stride * buf->Height);
+	cg = uiprivImageBufferCGImage(buf->data, buf->Stride, buf->Width, buf->Height, buf->alpha);
+	if (cg == NULL)
+		uiprivImplBug("error creating image buffer image");
+	CGImageRelease(buf->cg);
+	buf->cg = cg;
+}
+
+void uiImageBufferDraw(uiDrawContext *c, uiImageBuffer *buf, uiRect *srcrect, uiRect *dstrect, int filter)
+{
+	double sx, sy;
+
+	if (buf->cg == NULL)
+		return;
+	// guard against degenerate rectangles
+	if (srcrect->Width == 0 || srcrect->Height == 0 ||
+		dstrect->Width == 0 || dstrect->Height == 0)
+		return;
+
+	CGContextSaveGState(c->c);
+
+	// clip to the destination so the source region cropped by the transform
+	// below does not paint outside it
+	CGContextClipToRect(c->c,
+		CGRectMake(dstrect->X, dstrect->Y, dstrect->Width, dstrect->Height));
+
+	sx = dstrect->Width / (double) srcrect->Width;
+	sy = dstrect->Height / (double) srcrect->Height;
+
+	CGContextTranslateCTM(c->c, dstrect->X, dstrect->Y);
+	CGContextScaleCTM(c->c, sx, -sy);
+	CGContextTranslateCTM(c->c, -srcrect->X, -(buf->Height - srcrect->Y));
+
+	if (filter)
+		CGContextSetInterpolationQuality(c->c, kCGInterpolationHigh);
+	else
+		CGContextSetInterpolationQuality(c->c, kCGInterpolationNone);
+
+	CGContextDrawImage(c->c, CGRectMake(0, 0, buf->Width, buf->Height), buf->cg);
+
+	CGContextRestoreGState(c->c);
+}
+
+void uiFreeImageBuffer(uiImageBuffer *buf)
+{
+	if (buf->cg != NULL)
+		CGImageRelease(buf->cg);
+	uiprivFree(buf->data);
+	uiprivFree(buf);
+}

@@ -45,3 +45,4 @@ Subdirectories are larger demos that combine several concepts:
 | `queue-main.c` | Queue a callback onto the main UI loop. |
 | `should-quit.c` | Handle application quit requests. |
 | `drawbitmap.c` | Draw a uiDrawBitmap, scaled and magnified. |
+| `imagebuffer.c` | Draw a uiImageBuffer, scaled and magnified. |

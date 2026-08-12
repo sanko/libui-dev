@@ -2318,6 +2318,16 @@ _UI_EXTERN void uiDrawBitmapUpdate(uiDrawBitmap *bmp, const void *data);
 _UI_EXTERN void uiDrawBitmapDraw(uiDrawContext *c, uiDrawBitmap *bmp, uiRect *srcrect, uiRect *dstrect, int filter);
 _UI_EXTERN void uiDrawFreeBitmap(uiDrawBitmap *bmp);
 
+// uiImageBuffer is a mutable buffer of pixel data that can be drawn to a
+// uiDrawContext, using the same pixel format as uiDrawBitmap.
+typedef struct uiImageBuffer uiImageBuffer;
+
+// image buffer API
+_UI_EXTERN uiImageBuffer *uiNewImageBuffer(uiDrawContext *c, int width, int height, int alpha);
+_UI_EXTERN void uiImageBufferUpdate(uiImageBuffer *buf, const void *data);
+_UI_EXTERN void uiImageBufferDraw(uiDrawContext *c, uiImageBuffer *buf, uiRect *srcrect, uiRect *dstrect, int filter);
+_UI_EXTERN void uiFreeImageBuffer(uiImageBuffer *buf);
+
 // uiAttribute stores information about an attribute in a
 // uiAttributedString.
 //

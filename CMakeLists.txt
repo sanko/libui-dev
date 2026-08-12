@@ -314,7 +314,7 @@ if(LIBUI_COMPILE_EXAMPLES)
         test/unit/checkbox.c test/unit/radiobuttons.c test/unit/tab.c
         test/unit/scroll.c
         test/unit/entry.c test/unit/menu.c test/unit/progressbar.c
-        test/unit/drawmatrix.c test/unit/attrstr.c test/unit/window.c
+        test/unit/drawmatrix.c test/unit/imagebuffer.c test/unit/attrstr.c test/unit/window.c
         test/unit/tooltip.c)
     target_include_directories(unit PRIVATE ${PROJECT_SOURCE_DIR}/test/unit)
     target_link_libraries(unit PRIVATE cmocka)
@@ -329,6 +329,7 @@ if(LIBUI_COMPILE_EXAMPLES)
     add_test(NAME unit-checkbox COMMAND unit checkbox)
     add_test(NAME unit-combobox COMMAND unit combobox)
     add_test(NAME unit-drawmatrix COMMAND unit drawmatrix)
+    add_test(NAME unit-imagebuffer COMMAND unit imagebuffer)
     add_test(NAME unit-editablecombobox COMMAND unit editablecombobox)
     add_test(NAME unit-entry COMMAND unit entry)
     add_test(NAME unit-init COMMAND unit init)
@@ -388,6 +389,7 @@ if(LIBUI_COMPILE_EXAMPLES)
     add_ui_exe(histogram examples/resources.rc examples/histogram/main.c)
     add_ui_exe(drawtext examples/resources.rc examples/drawtext/main.c)
     add_ui_exe(drawbitmap examples/resources.rc examples/drawbitmap.c)
+    add_ui_exe(imagebuffer examples/resources.rc examples/imagebuffer.c)
     add_ui_exe(datetime examples/resources.rc examples/datetime/main.c)
 
     find_package(Threads REQUIRED)

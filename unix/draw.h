@@ -16,6 +16,15 @@ struct uiDrawBitmap {
 	cairo_surface_t *bmp;
 };
 
+// image buffer API
+struct uiImageBuffer {
+	int Width;
+	int Height;
+	int Stride;
+
+	cairo_surface_t *buf;
+};
+
 // drawpath.c
 extern void uiprivRunPath(uiDrawPath *p, cairo_t *cr);
 extern uiDrawFillMode uiprivPathFillMode(uiDrawPath *path);

@@ -19,6 +19,7 @@ libui_unit_sources = [
         'menu.c',
         'progressbar.c',
         'drawmatrix.c',
+        'imagebuffer.c',
         'attrstr.c',
         'window.c',
         'tooltip.c',

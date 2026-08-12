@@ -147,6 +147,9 @@ libui_examples = {
 	'drawbitmap': {
 		'sources':		['drawbitmap.c'],
 	},
+	'imagebuffer': {
+		'sources':		['imagebuffer.c'],
+	},
 	'datetime': {
 		'sources':		['datetime/main.c'],
 	},

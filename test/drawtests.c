@@ -1979,6 +1979,68 @@ static void drawBitmap(uiAreaDrawParams *p)
 	uiDrawFreeBitmap(bmp);
 }
 
+static void drawImageBuffer(uiAreaDrawParams *p)
+{
+	uiImageBuffer *buf;
+	uiRect src;
+	uiRect dst;
+	int width, height;
+	unsigned char *pixels;
+	int x, y;
+	size_t i;
+
+	width = 256;
+	height = 256;
+	pixels = (unsigned char *) malloc((size_t) width * height * 4);
+	if (pixels == NULL)
+		die("out of memory");
+
+	// generate a color gradient test image
+	for (y = 0; y < height; y++)
+		for (x = 0; x < width; x++) {
+			i = ((size_t) y * width + x) * 4;
+			pixels[i] = (unsigned char) (x * 255 / width);		// blue
+			pixels[i + 1] = (unsigned char) (y * 255 / height);	// green
+			pixels[i + 2] = (unsigned char) (255 - x * 255 / width);	// red
+			pixels[i + 3] = 255;					// alpha
+		}
+
+	buf = uiNewImageBuffer(p->Context, width, height, 1);
+	uiImageBufferUpdate(buf, pixels);
+	free(pixels);
+
+	// full-size render
+	src.X = 0;
+	src.Y = 0;
+	src.Width = width;
+	src.Height = height;
+	dst.X = p->ClipX + 5;
+	dst.Y = p->ClipY + 5;
+	dst.Width = width;
+	dst.Height = height;
+	uiImageBufferDraw(p->Context, buf, &src, &dst, 0);
+
+	// scaled down, with bilinear filtering
+	src.Width = width / 2;
+	src.Height = height / 2;
+	dst.X = p->ClipX + 5;
+	dst.Y = p->ClipY + height + 20;
+	dst.Width = width / 2;
+	dst.Height = height / 2;
+	uiImageBufferDraw(p->Context, buf, &src, &dst, 1);
+
+	// scaled up, nearest neighbor
+	src.Width = width / 4;
+	src.Height = height / 4;
+	dst.X = p->ClipX + width / 2 + 15;
+	dst.Y = p->ClipY + 5;
+	dst.Width = width;
+	dst.Height = height;
+	uiImageBufferDraw(p->Context, buf, &src, &dst, 0);
+
+	uiFreeImageBuffer(buf);
+}
+
 // TODO Patterns page?
 
 // TODO Shadows page?
@@ -2025,6 +2087,7 @@ static const struct drawtest tests[] = {
 	{ "cairo samples: set line join", drawCSSetLineJoin },
 	{ "Quartz 2D PG: Creating a Window Graphics Context in Mac OS X", drawQ2DCreateWindowGC },
 	{ "Bitmap test", drawBitmap },
+	{ "ImageBuffer test", drawImageBuffer },
 	{ NULL, NULL },
 };
 

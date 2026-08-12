@@ -15,3 +15,13 @@ struct uiDrawBitmap {
 	int Height;
 	int Stride;
 };
+
+// image buffer API
+struct uiImageBuffer {
+	CGImageRef cg;
+	unsigned char *data;
+	int Width;
+	int Height;
+	int Stride;
+	int alpha;
+};

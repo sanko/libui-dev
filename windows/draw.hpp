@@ -34,6 +34,15 @@ struct uiDrawBitmap {
 	ID2D1Bitmap *bmp;
 };
 
+// image buffer API
+struct uiImageBuffer {
+	int Width;
+	int Height;
+	int Stride;
+
+	ID2D1Bitmap *buf;
+};
+
 // drawpath.cpp
 extern ID2D1PathGeometry *pathGeometry(uiDrawPath *p);
 
