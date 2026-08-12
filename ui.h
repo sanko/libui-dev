@@ -218,8 +218,8 @@ typedef struct uiDragContext uiDragContext;
  * Coordinates are measured from the top left corner of the control.
  *
  * @param dc uiDragContext instance.
- * @param[out] x X position of the window.
- * @param[out] y Y position of the window.
+ * @param[out] x X position of the control.
+ * @param[out] y Y position of the control.
  *
  * @memberof uiDragContext
  */
@@ -442,7 +442,7 @@ struct uiControl {
 	int (*Enabled)(uiControl *);
 	void (*Enable)(uiControl *);
 	void (*Disable)(uiControl *);
-	uiDragDestination *dragDest;
+	uiDragDestination *dragDest; //!< Drag destination to receive drag and drop events, `NULL` if not registered.
 };
 // TOOD add argument names to all arguments
 #define uiControl(this) ((uiControl *) (this))
@@ -567,8 +567,15 @@ _UI_EXTERN void uiControlRegisterDragDestination(uiControl *c, uiDragDestination
  *
  * Helper to allocate new controls.
  *
- * @param n Size of type to allocate.
- * @todo Document parameters
+ * @param n Size of the control struct to allocate.
+ * @param OSsig OS-specific signature identifying the control implementation.\n
+ *              Stored in #uiControl::OSSignature.
+ * @param typesig uiControl type signature identifying the control type.\n
+ *                Stored in #uiControl::TypeSignature.
+ * @param typenamestr Name of the control type, used for allocation tracking.\n
+ *                    A valid, `NUL` terminated UTF-8 string.\n
+ *                    Data is copied internally. Ownership is not transferred.
+ * @returns A new uiControl instance.
  * @memberof uiControl @static
  */
 _UI_EXTERN uiControl *uiAllocControl(size_t n, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
@@ -1280,7 +1287,7 @@ typedef struct uiTab uiTab;
 /**
  * Returns the index of the tab selected.
  *
- * @param c uiTab instance.
+ * @param t uiTab instance.
  * @returns Index of the tab selected
  * @memberof uiTab
  */
@@ -1289,7 +1296,7 @@ _UI_EXTERN int uiTabSelected(uiTab *t);
 /**
  * Sets the tab selected.
  *
- * @param c uiTab instance.
+ * @param t uiTab instance.
  * @param index Index of the tab to be selected
  * @note The @p index must be in the range [0, uiTabNumPages(t) - 1].
  *          If out of bounds, the selection is not changed.
@@ -2354,7 +2361,7 @@ _UI_EXTERN uiMenu *uiNewMenu(const char *name);
  *          TODO: clarify string encoding.
  *          Caller is responsible for freeing the data with `uiFreeText()`.
  * @note File paths are separated by the underlying OS file path separator.
- * @ingroup dataEntry dialogWindow
+ * @ingroup dialogWindow
  */
 _UI_EXTERN char *uiOpenFile(uiWindow *parent);
 
@@ -2367,7 +2374,7 @@ _UI_EXTERN char *uiOpenFile(uiWindow *parent);
  *          TODO: clarify string encoding.
  *          Caller is responsible for freeing the data with `uiFreeText()`.
  * @note File paths are separated by the underlying OS file path separator.
- * @ingroup dataEntry dialogWindow
+ * @ingroup dialogWindow
  */
 _UI_EXTERN char *uiOpenFolder(uiWindow *parent);
 
@@ -2383,7 +2390,7 @@ _UI_EXTERN char *uiOpenFolder(uiWindow *parent);
  *          TODO: clarify string encoding.
  *          Caller is responsible for freeing the data with `uiFreeText()`.
  * @note File paths are separated by the underlying OS file path separator.
- * @ingroup dataEntry dialogWindow
+ * @ingroup dialogWindow
  */
 _UI_EXTERN char *uiSaveFile(uiWindow *parent);
 
