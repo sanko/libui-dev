@@ -9,6 +9,9 @@ struct uiEntry {
 	NSTextField *textfield;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
+	void (*onFilesDropped)(uiEntry *, int, char **, void *);
+	void *onFilesDroppedData;
+	int acceptDrops;
 };
 
 @interface uiprivNSTextField : NSTextField<NSDraggingDestination> {

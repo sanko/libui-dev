@@ -1157,6 +1157,50 @@ _UI_EXTERN void uiEntryOnChanged(uiEntry *e,
 	void (*f)(uiEntry *sender, void *senderData), void *data);
 
 /**
+ * Registers a callback for when the user drops files on the entry.
+ *
+ * To receive drop events the entry must be set to accept drops via
+ * uiEntrySetAcceptDrops().
+ *
+ * @param e uiEntry instance.
+ * @param f Callback function.\n
+ *          @p sender Back reference to the instance that initiated the callback.\n
+ *          @p fileCount Number of dropped files.\n
+ *          @p fileNames Paths to the dropped files.\n
+ *          The array and the strings are only valid for the duration of the callback.\n
+ *          @p senderData User data registered with the sender instance.\n
+ * @param data User data to be passed to the callback.
+ *
+ * @note The callback is not triggered when the entry does not accept drops.
+ * @note Only one callback can be registered at a time.
+ * @memberof uiEntry
+ */
+_UI_EXTERN void uiEntryOnFilesDropped(uiEntry *e,
+	void (*f)(uiEntry *sender, int fileCount, char **fileNames, void *senderData), void *data);
+
+/**
+ * Returns whether or not the entry will accept dropped files.
+ *
+ * @param e uiEntry instance.
+ * @returns `TRUE` if the entry accepts dropped files, `FALSE` otherwise. [Default: `FALSE`]
+ * @memberof uiEntry
+ */
+_UI_EXTERN int uiEntryAcceptDrops(uiEntry *e);
+
+/**
+ * Sets whether or not the entry will accept dropped files.
+ *
+ * When enabled, dropping files on the entry triggers the uiEntryOnFilesDropped()
+ * callback. Only files are accepted; other types of drops, such as text, are
+ * rejected.
+ *
+ * @param e uiEntry instance.
+ * @param accept `TRUE` to accept dropped files, `FALSE` otherwise.
+ * @memberof uiEntry
+ */
+_UI_EXTERN void uiEntrySetAcceptDrops(uiEntry *e, int accept);
+
+/**
  * Returns whether or not the entry's text can be changed.
  *
  * @param e uiEntry instance.
