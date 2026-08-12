@@ -112,8 +112,13 @@ static void imageBufferDraw(void **state)
 	uiControlShow(uiControl(area));
 	uiControlShow(uiControl(s->w));
 
-	// pump the message loop without blocking until the area has painted
-	for (i = 0; i < 100 && drawCalls == 0; i++)
+	// pump the message loop until the area has painted; the first step
+	// blocks so the window is displayed on macOS, where a non-blocking
+	// step that finds no queued event returns without running the display
+	// cycle
+	uiMainSteps();
+	uiMainStep(1);
+	for (i = 0; i < 99 && drawCalls == 0; i++)
 		uiMainStep(0);
 
 	assert_true(drawCalls > 0);
