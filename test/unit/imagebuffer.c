@@ -93,13 +93,18 @@ static int areaKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e) { retur
 
 static void imageBufferDraw(void **state)
 {
-	struct state *s = *state;
+	uiInitOptions o = {0};
+	uiWindow *w;
 	uiAreaHandler handler;
 	uiArea *area;
 	int i;
 
 	drawCalls = 0;
 	drawFailed = 0;
+
+	assert_null(uiInit(&o));
+	w = uiNewWindow(UNIT_TEST_WINDOW_TITLE, UNIT_TEST_WINDOW_WIDTH, UNIT_TEST_WINDOW_HEIGHT, 0);
+	uiWindowOnClosing(w, unitWindowOnClosingQuit, NULL);
 
 	handler.Draw = areaDraw;
 	handler.MouseEvent = areaMouseEvent;
@@ -108,9 +113,9 @@ static void imageBufferDraw(void **state)
 	handler.KeyEvent = areaKeyEvent;
 	area = uiNewArea(&handler);
 
-	uiWindowSetChild(s->w, uiControl(area));
+	uiWindowSetChild(w, uiControl(area));
 	uiControlShow(uiControl(area));
-	uiControlShow(uiControl(s->w));
+	uiControlShow(uiControl(w));
 
 	// pump the message loop until the area has painted; the first step
 	// blocks so the window is displayed on macOS, where a non-blocking
@@ -123,10 +128,16 @@ static void imageBufferDraw(void **state)
 
 	assert_true(drawCalls > 0);
 	assert_false(drawFailed);
+
+	// the window is managed entirely by this test so the shared teardown's
+	// blocking uiMainStep(1) is never reached with an already-shown window,
+	// which would hang the macOS run loop waiting for an event that never
+	// arrives
+	uiControlDestroy(uiControl(w));
+	uiUninit();
 }
 
-#define imageBufferUnitTest(f) cmocka_unit_test_setup_teardown((f), \
-		unitTestSetup, unitTestTeardown)
+#define imageBufferUnitTest(f) cmocka_unit_test((f))
 
 int imageBufferRunUnitTests(void)
 {
