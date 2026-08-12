@@ -32,6 +32,7 @@ int drawMatrixRunUnitTests(void);
 int imageBufferRunUnitTests(void);
 int attrstrRunUnitTests(void);
 int tooltipRunUnitTests(void);
+int dragDestinationRunUnitTests(void);
 
 /**
  * Helper for general setup/teardown of controls embedded in a window.

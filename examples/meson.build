@@ -153,6 +153,9 @@ libui_examples = {
 	'datetime': {
 		'sources':		['datetime/main.c'],
 	},
+	'drag-drop': {
+		'sources':		['drag-drop/main.c'],
+	},
 }
 foreach name, args : libui_examples
 	executable(name, args['sources'] + libui_example_sources,

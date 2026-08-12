@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
 		{ "imagebuffer", imageBufferRunUnitTests },
 		{ "attrstr", attrstrRunUnitTests },
 		{ "tooltip", tooltipRunUnitTests },
+		{ "dragdestination", dragDestinationRunUnitTests },
 	};
 
 	// an optional argument filters which component(s) run; each component

@@ -9,10 +9,10 @@
 
 // LONGTERM 6 units of spacing between buttons, as suggested by Interface Builder?
 
-@interface radioButtonsDelegate : NSObject {
-	uiRadioButtons *libui_r;
+@interface uiprivNSViewRadioButtons : NSView<NSDraggingDestination> {
+	uiRadioButtons *radioButtons;
 }
-- (id)initWithR:(uiRadioButtons *)r;
+- (id)initWithFrame:(NSRect)frame uiRadioButtons:(uiRadioButtons *)r;
 - (IBAction)onClicked:(id)sender;
 @end
 
@@ -22,26 +22,27 @@ struct uiRadioButtons {
 	NSMutableArray *buttons;
 	NSMutableArray *constraints;
 	NSLayoutConstraint *lastv;
-	radioButtonsDelegate *delegate;
 	void (*onSelected)(uiRadioButtons *, void *);
 	void *onSelectedData;
 	int selected;
 };
 
-@implementation radioButtonsDelegate
+@implementation uiprivNSViewRadioButtons
 
-- (id)initWithR:(uiRadioButtons *)r
+uiDarwinDragDestinationMethods(radioButtons)
+
+- (id)initWithFrame:(NSRect)frame uiRadioButtons:(uiRadioButtons *)r
 {
-	self = [super init];
+	self = [super initWithFrame:frame];
 	if (self)
-		self->libui_r = r;
+		self->radioButtons = r;
 	return self;
 }
 
 - (IBAction)onClicked:(id)sender
 {
 	NSButton *b = (NSButton *)sender;
-	uiRadioButtons *r = self->libui_r;
+	uiRadioButtons *r = self->radioButtons;
 	NSInteger index;
 
 	index = [r->buttons indexOfObject:b];
@@ -105,8 +106,6 @@ static void uiRadioButtonsDestroy(uiControl *c)
 		[b removeFromSuperview];
 	}
 	[r->buttons release];
-	// destroy the delegate
-	[r->delegate release];
 	// and destroy ourselves
 	[r->view release];
 	uiFreeControl(uiControl(r));
@@ -131,7 +130,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	uiDarwinSetControlFont(b, NSControlSizeRegular);
 	[b setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	[b setTarget:r->delegate];
+	[b setTarget:r->view];
 	[b setAction:@selector(onClicked:)];
 	[b setEnabled:uiControlEnabledToUser(uiControl(r))];
 
@@ -242,9 +241,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 	r->buttons = [NSMutableArray new];
 	r->constraints = [NSMutableArray new];
 	r->selected = -1;
-	r->view = [[NSView alloc] initWithFrame:NSZeroRect];
-
-	r->delegate = [[radioButtonsDelegate alloc] initWithR:r];
+	r->view = [[uiprivNSViewRadioButtons alloc] initWithFrame:NSZeroRect uiRadioButtons:r];
 
 	uiRadioButtonsOnSelected(r, defaultOnSelected, NULL);
 

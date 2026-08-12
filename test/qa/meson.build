@@ -7,6 +7,7 @@ libui_qa_sources = [
 	'label.c',
 	'radiobuttons.c',
 	'separator.c',
+	'dragdestination.c',
 	'spinbox.c',
 	'window.c',
 ]

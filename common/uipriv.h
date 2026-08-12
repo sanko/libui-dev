@@ -61,6 +61,24 @@ extern void uiprivFallbackTransformSize(uiDrawMatrix *, double *, double *);
 // OS-specific text.* files
 extern int uiprivStricmp(const char *a, const char *b);
 
+// OS-specific dragdestination.* files
+struct uiDragDestination {
+	uiControl *control;
+	uiDragOperation (*onEnter)(uiDragDestination *, uiDragContext *, void *);
+	uiDragOperation (*onMove)(uiDragDestination *, uiDragContext *, void *);
+	void (*onExit)(uiDragDestination *, void *);
+	int (*onDrop)(uiDragDestination *, uiDragContext *, void *);
+	void *onEnterData;
+	void *onMoveData;
+	void *onExitData;
+	void *onDropData;
+
+	uiDragOperation op;
+	int typeMask;
+	void *priv;
+};
+extern void uiprivControlDestroyDragDestination(uiControl *);
+
 #ifdef __cplusplus
 }
 #endif

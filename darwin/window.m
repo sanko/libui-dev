@@ -37,6 +37,8 @@ static NSUInteger windowStyleMask(uiWindow *w)
 
 @implementation uiprivNSWindow
 
+uiDarwinDragDestinationMethods(window)
+
 - (void)uiprivDoMove:(NSEvent *)initialEvent
 {
 	uiprivDoManualMove(self, initialEvent);

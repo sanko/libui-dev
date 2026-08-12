@@ -178,4 +178,7 @@ extern HRESULT uiprivWICToGDI(IWICBitmap *b, HDC dc, int width, int height, HBIT
 // tooltip.cpp
 extern void uiprivDestroyTooltip(uiControl *c);
 
+// dragcontext.cpp
+extern int uiprivDropEffectsToDragOperations(DWORD de);
+
 #endif

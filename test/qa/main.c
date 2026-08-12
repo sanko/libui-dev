@@ -50,6 +50,11 @@ struct controlTestCase separatorTestCases[] = {
 	{NULL, NULL, NULL}
 };
 
+struct controlTestCase dragDestinationTestCases[] = {
+	QA_TEST("1. Drop Text and Files", dragDestinationDrop),
+	{NULL, NULL, NULL}
+};
+
 struct controlTestCase spinboxTestCases[] = {
 	QA_TEST("1. Spinbox OnChanged Callback", spinboxOnChanged),
 	{NULL, NULL, NULL}
@@ -72,6 +77,7 @@ struct controlTestGroup controlTestGroups[] = {
 	{"uiLabel", labelTestCases},
 	{"uiRadioButtons", radioButtonsTestCases},
 	{"uiSeparator", separatorTestCases},
+	{"uiDragDestination", dragDestinationTestCases},
 	{"uiSpinbox", spinboxTestCases},
 	{"uiWindow", windowTestCases},
 };

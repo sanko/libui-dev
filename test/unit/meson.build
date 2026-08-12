@@ -23,6 +23,7 @@ libui_unit_sources = [
         'attrstr.c',
         'window.c',
         'tooltip.c',
+        'dragdestination.c',
 ]
 
 if libui_OS == 'windows'

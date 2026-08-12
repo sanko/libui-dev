@@ -46,3 +46,9 @@ Subdirectories are larger demos that combine several concepts:
 | `should-quit.c` | Handle application quit requests. |
 | `drawbitmap.c` | Draw a uiDrawBitmap, scaled and magnified. |
 | `imagebuffer.c` | Draw a uiImageBuffer, scaled and magnified. |
+
+## Subdirectory demos
+
+| Directory | Concept |
+| --- | --- |
+| `drag-drop` | Register a drag destination and receive dropped text and files. |

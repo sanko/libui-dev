@@ -71,7 +71,7 @@ extern void uiprivDisableAutocorrect(NSTextView *);
 extern NSTextField *uiprivNewEditableTextField(void);
 
 // window.m
-@interface uiprivNSWindow : NSWindow<NSWindowDelegate> {
+@interface uiprivNSWindow : NSWindow<NSWindowDelegate, NSDraggingDestination> {
 	uiWindow *window;
 }
 - (BOOL)windowShouldClose:(id)sender;
@@ -164,3 +164,12 @@ extern void uiprivLoadUndocumented(void);
 
 // event.m
 extern BOOL uiprivSendKeyboardEditEvents(uiprivApplicationClass *app, NSEvent *e);
+
+// dragdestination.m
+extern NSDragOperation uiprivDragOperationToNSDragOperation(uiDragOperation op);
+
+// dragcontext.m
+struct uiDragContext {
+	id<NSDraggingInfo> info;
+	NSView *view;
+};

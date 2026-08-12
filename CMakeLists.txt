@@ -315,7 +315,7 @@ if(LIBUI_COMPILE_EXAMPLES)
         test/unit/scroll.c
         test/unit/entry.c test/unit/menu.c test/unit/progressbar.c
         test/unit/drawmatrix.c test/unit/imagebuffer.c test/unit/attrstr.c test/unit/window.c
-        test/unit/tooltip.c)
+        test/unit/tooltip.c test/unit/dragdestination.c)
     target_include_directories(unit PRIVATE ${PROJECT_SOURCE_DIR}/test/unit)
     target_link_libraries(unit PRIVATE cmocka)
     # the unit runner reports results on stdout; keep it console-subsystem
@@ -343,12 +343,13 @@ if(LIBUI_COMPILE_EXAMPLES)
     add_test(NAME unit-tab COMMAND unit tab)
     add_test(NAME unit-tooltip COMMAND unit tooltip)
     add_test(NAME unit-window COMMAND unit window)
+    add_test(NAME unit-dragdestination COMMAND unit dragdestination)
 
     # headless control smoke tests
     add_ui_exe(qa test/qa/resources.rc
         test/qa/qa.c test/qa/main.c test/qa/button.c test/qa/checkbox.c
         test/qa/entry.c test/qa/label.c test/qa/radiobuttons.c
-        test/qa/separator.c test/qa/spinbox.c test/qa/window.c)
+        test/qa/separator.c test/qa/dragdestination.c test/qa/spinbox.c test/qa/window.c)
     target_include_directories(qa PRIVATE ${PROJECT_SOURCE_DIR}/test/qa)
 
     add_ui_exe(hello-world examples/resources.rc examples/hello-world.c)
@@ -391,6 +392,7 @@ if(LIBUI_COMPILE_EXAMPLES)
     add_ui_exe(drawbitmap examples/resources.rc examples/drawbitmap.c)
     add_ui_exe(imagebuffer examples/resources.rc examples/imagebuffer.c)
     add_ui_exe(datetime examples/resources.rc examples/datetime/main.c)
+    add_ui_exe(drag-drop examples/resources.rc examples/drag-drop/main.c)
 
     find_package(Threads REQUIRED)
     add_ui_exe(cpp-multithread examples/resources.rc examples/cpp-multithread/main.cpp)
