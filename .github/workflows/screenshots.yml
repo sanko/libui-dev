@@ -1,0 +1,66 @@
+name: Screenshots
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: ~
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    name: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          # 3rdparty/cmocka is pinned as a submodule; it is required by the
+          # CMake build when LIBUI_COMPILE_EXAMPLES is on.
+          submodules: recursive
+
+      - name: Install Linux deps
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libgtk-3-dev xvfb
+
+      - name: Install screenshot tools
+        shell: bash
+        run: |
+          if command -v python3 >/dev/null 2>&1; then PY=python3; else PY=python; fi
+          # A venv sidesteps the PEP 668 externally-managed Python that
+          # ships on the macOS runners (pip refuses to install system-wide).
+          "$PY" -m venv .venv
+          if [ -f .venv/bin/python ]; then VP=.venv/bin/python; else VP=.venv/Scripts/python.exe; fi
+          "$VP" -m pip install mss
+
+      - name: Build examples
+        shell: bash
+        run: |
+          cmake -S . -B _build -DCMAKE_BUILD_TYPE=Release -DLIBUI_COMPILE_EXAMPLES=ON
+          cmake --build _build --config Release
+
+      - name: Take screenshots
+        shell: bash
+        run: |
+          if [ -f .venv/bin/python ]; then VP=.venv/bin/python; else VP=.venv/Scripts/python.exe; fi
+          if [[ "${{ matrix.os }}" == ubuntu* ]]; then
+            xvfb-run -a "$VP" screenshots/screenshot.py _build -o screenshots-out
+          else
+            "$VP" screenshots/screenshot.py _build -o screenshots-out
+          fi
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots-${{ matrix.os }}
+          path: screenshots-out/
