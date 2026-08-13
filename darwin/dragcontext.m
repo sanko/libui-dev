@@ -13,9 +13,9 @@ int uiDragContextDragTypes(uiDragContext *dc)
 	int types = 0;
 	NSPasteboard *pboard = [dc->info draggingPasteboard];
 
-	if ([[pboard types] containsObject:NSStringPboardType])
+	if ([[pboard types] containsObject:NSPasteboardTypeString])
 		types |= uiDragTypeText;
-	if ([[pboard types] containsObject:NSFilenamesPboardType])
+	if ([[pboard types] containsObject:NSPasteboardTypeFileURL])
 		types |= uiDragTypeURIs;
 
 	return types;
@@ -44,9 +44,9 @@ uiDragData *uiDragContextDragData(uiDragContext *dc, uiDragType type)
 	switch (type) {
 	case uiDragTypeURIs:
 		{
-			if ([[pboard types] containsObject:NSFilenamesPboardType]) {
+			if ([[pboard types] containsObject:NSPasteboardTypeFileURL]) {
 				int i;
-				NSArray *urls = [pboard propertyListForType:NSFilenamesPboardType];
+				NSArray *urls = [pboard readObjectsForClasses:@[[NSURL class]] options:nil];
 
 				// TODO inform about failure?
 				if (urls == nil)
@@ -57,14 +57,14 @@ uiDragData *uiDragContextDragData(uiDragContext *dc, uiDragType type)
 				d->data.URIs.numURIs = [urls count];
 				d->data.URIs.URIs = uiprivAlloc(d->data.URIs.numURIs * sizeof(*d->data.URIs.URIs), "uiDragDropData->data.URIs.URIs");
 				for (i = 0; i < d->data.URIs.numURIs; ++i)
-					d->data.URIs.URIs[i] = uiDarwinNSStringToText(urls[i]);
+					d->data.URIs.URIs[i] = uiDarwinNSStringToText([urls[i] path]);
 			}
 		}
 		break;
 	case uiDragTypeText:
 		{
-			if ([[pboard types] containsObject:NSStringPboardType]) {
-				NSString *text = [pboard stringForType:NSStringPboardType];
+			if ([[pboard types] containsObject:NSPasteboardTypeString]) {
+				NSString *text = [pboard stringForType:NSPasteboardTypeString];
 
 				// TODO inform about failure?
 				if (text == nil)

@@ -103,10 +103,10 @@ void uiControlRegisterDragDestination(uiControl *c, uiDragDestination *dd)
 
 	types = [NSMutableArray new];
 	if (dd->typeMask & uiDragTypeURIs) {
-		[types addObject:NSFilenamesPboardType];
+		[types addObject:NSPasteboardTypeFileURL];
 	}
 	if (dd->typeMask & uiDragTypeText) {
-		[types addObject:NSStringPboardType];
+		[types addObject:NSPasteboardTypeString];
 	}
 
 	[(id)uiControlHandle(c) registerForDraggedTypes:types];

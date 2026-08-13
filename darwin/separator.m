@@ -27,7 +27,6 @@ uiDarwinDragDestinationMethods(separator)
 		self->separator = s;
 
 		[self setBoxType:NSBoxSeparator];
-		[self setBorderType:NSGrooveBorder];
 		[self setTransparent:NO];
 		[self setTitlePosition:NSNoTitle];
 	}
