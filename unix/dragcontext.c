@@ -82,9 +82,19 @@ uiDragData *uiDragContextDragData(uiDragContext *dc, uiDragType type)
 	priv->dataReceived = FALSE;
 	priv->requestedType = type;
 	gtk_drag_get_data(dc->widget, dc->context, atom, dc->time);
-	while (!priv->dataReceived)
-		if (!uiMainStep(1))
-			break;
+	{
+		// Don't spin the UI thread forever: a real drop answers in well
+		// under a second, so give the source a generous window to reply and
+		// then give up instead of hanging the application.
+		gint64 deadline = g_get_monotonic_time() + 5 * G_TIME_SPAN_SECOND;
+
+		while (!priv->dataReceived) {
+			if (!uiMainStep(1))
+				break;
+			if (g_get_monotonic_time() >= deadline)
+				break;
+		}
+	}
 
 	return priv->data;
 }

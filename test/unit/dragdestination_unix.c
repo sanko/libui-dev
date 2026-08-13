@@ -156,8 +156,9 @@ static void unixDragRegister(uiControl *c, struct unixDragState *s)
 }
 
 // starts a drag with the given targets from a fresh source window and
-// returns the drag context
-static GdkDragContext *unixDragBegin(const char *const *targetNames, int *targetInfos, int nTargets)
+// returns the drag context plus the source window and source label
+static GdkDragContext *unixDragBegin(const char *const *targetNames, int *targetInfos, int nTargets,
+	GtkWidget **outSourceWin, GtkWidget **outSourceLabel)
 {
 	GtkWidget *sourceWin;
 	GtkWidget *sourceLabel;
@@ -182,7 +183,33 @@ static GdkDragContext *unixDragBegin(const char *const *targetNames, int *target
 
 	context = gtk_drag_begin_with_coordinates(sourceLabel, targets,
 		GDK_ACTION_COPY | GDK_ACTION_LINK | GDK_ACTION_MOVE, 1, NULL, 0, 0);
+	*outSourceWin = sourceWin;
+	*outSourceLabel = sourceLabel;
 	return context;
+}
+
+// realizes the destination widget by stuffing it into a throwaway window;
+// returns that window, which must be torn down with unixDragFinish()
+static GtkWidget *unixDragRealize(GtkWidget *target)
+{
+	GtkWidget *destWin;
+
+	destWin = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_container_add(GTK_CONTAINER(destWin), target);
+	gtk_widget_show_all(destWin);
+	return destWin;
+}
+
+static void unixDragFinish(GtkWidget *target, GtkWidget *destWin, GtkWidget *sourceWin,
+	GdkDragContext *context)
+{
+	// move the destination label back out of the throwaway window so the
+	// harness's teardown can destroy it normally
+	gtk_widget_hide(target);
+	gtk_container_remove(GTK_CONTAINER(destWin), target);
+	gtk_widget_destroy(destWin);
+	gtk_widget_destroy(sourceWin);
+	g_object_unref(context);
 }
 
 #define uiLabelPtrFromState(s) uiControlPtrFromState(uiLabel, s)
@@ -194,6 +221,9 @@ static void unixDragTextDrop(void **state)
 	struct unixDragSource src;
 	GdkDragContext *context;
 	GtkWidget *target;
+	GtkWidget *destWin;
+	GtkWidget *sourceWin;
+	GtkWidget *sourceLabel;
 	const char *targetNames[] = { "text/plain;charset=utf-8" };
 	int targetInfos[] = { uiDragTypeText };
 	gboolean handled;
@@ -204,10 +234,14 @@ static void unixDragTextDrop(void **state)
 	memset(&s, 0, sizeof(s));
 	unixDragRegister(uiControl(*c), &s);
 
+	// the destination must be realized (mapped) for the X selection
+	// round-trip that delivers the dropped data to actually complete
+	destWin = unixDragRealize(target);
+
 	memset(&src, 0, sizeof(src));
 	src.text = "hello drag";
 
-	context = unixDragBegin(targetNames, targetInfos, 1);
+	context = unixDragBegin(targetNames, targetInfos, 1, &sourceWin, &sourceLabel);
 	assert_non_null(context);
 
 	s.enterResult = uiDragOperationCopy;
@@ -215,7 +249,7 @@ static void unixDragTextDrop(void **state)
 	s.dropResult = 1;
 	s.fetchType = uiDragTypeText;
 
-	g_signal_connect(target, "drag-data-get", G_CALLBACK(unixDragSourceDataGet), &src);
+	g_signal_connect(sourceLabel, "drag-data-get", G_CALLBACK(unixDragSourceDataGet), &src);
 	g_signal_emit_by_name(target, "drag-motion", context, 12, 34, GDK_CURRENT_TIME, &handled);
 	assert_int_equal(s.enters, 1);
 	assert_int_equal(s.exits, 0);
@@ -234,7 +268,8 @@ static void unixDragTextDrop(void **state)
 	assert_string_equal(s.gotText, "hello drag");
 	assert_int_equal(s.exits, 0);
 
-	g_signal_handler_disconnect(target, g_signal_lookup("drag-data-get", G_OBJECT_TYPE(target)));
+	g_signal_handlers_disconnect_by_func(sourceLabel, G_CALLBACK(unixDragSourceDataGet), &src);
+	unixDragFinish(target, destWin, sourceWin, context);
 	unixDragStateFree(&s);
 }
 
@@ -245,6 +280,9 @@ static void unixDragUriDrop(void **state)
 	struct unixDragSource src;
 	GdkDragContext *context;
 	GtkWidget *target;
+	GtkWidget *destWin;
+	GtkWidget *sourceWin;
+	GtkWidget *sourceLabel;
 	const char *targetNames[] = { "text/uri-list" };
 	int targetInfos[] = { uiDragTypeURIs };
 	char *uris[] = { "file:///tmp/a.txt", "file:///tmp/b%20file.txt", NULL };
@@ -256,17 +294,19 @@ static void unixDragUriDrop(void **state)
 	memset(&s, 0, sizeof(s));
 	unixDragRegister(uiControl(*c), &s);
 
+	destWin = unixDragRealize(target);
+
 	memset(&src, 0, sizeof(src));
 	src.uris = uris;
 
-	context = unixDragBegin(targetNames, targetInfos, 1);
+	context = unixDragBegin(targetNames, targetInfos, 1, &sourceWin, &sourceLabel);
 	assert_non_null(context);
 
 	s.enterResult = uiDragOperationCopy;
 	s.dropResult = 1;
 	s.fetchType = uiDragTypeURIs;
 
-	g_signal_connect(target, "drag-data-get", G_CALLBACK(unixDragSourceDataGet), &src);
+	g_signal_connect(sourceLabel, "drag-data-get", G_CALLBACK(unixDragSourceDataGet), &src);
 	g_signal_emit_by_name(target, "drag-motion", context, 0, 0, GDK_CURRENT_TIME, &handled);
 	assert_int_equal(s.enters, 1);
 	assert_int_equal(s.gotTypes, uiDragTypeURIs);
@@ -279,7 +319,8 @@ static void unixDragUriDrop(void **state)
 	assert_string_equal(s.gotFiles[0], "/tmp/a.txt");
 	assert_string_equal(s.gotFiles[1], "/tmp/b file.txt");
 
-	g_signal_handler_disconnect(target, g_signal_lookup("drag-data-get", G_OBJECT_TYPE(target)));
+	g_signal_handlers_disconnect_by_func(sourceLabel, G_CALLBACK(unixDragSourceDataGet), &src);
+	unixDragFinish(target, destWin, sourceWin, context);
 	unixDragStateFree(&s);
 }
 
@@ -290,6 +331,9 @@ static void unixDragExit(void **state)
 	struct unixDragSource src;
 	GdkDragContext *context;
 	GtkWidget *target;
+	GtkWidget *destWin;
+	GtkWidget *sourceWin;
+	GtkWidget *sourceLabel;
 	const char *targetNames[] = { "text/plain;charset=utf-8" };
 	int targetInfos[] = { uiDragTypeText };
 	gboolean handled;
@@ -300,23 +344,26 @@ static void unixDragExit(void **state)
 	memset(&s, 0, sizeof(s));
 	unixDragRegister(uiControl(*c), &s);
 
+	destWin = unixDragRealize(target);
+
 	memset(&src, 0, sizeof(src));
 	src.text = "hello drag";
 
-	context = unixDragBegin(targetNames, targetInfos, 1);
+	context = unixDragBegin(targetNames, targetInfos, 1, &sourceWin, &sourceLabel);
 	assert_non_null(context);
 
 	s.enterResult = uiDragOperationCopy;
 	s.dropResult = 1;
 
-	g_signal_connect(target, "drag-data-get", G_CALLBACK(unixDragSourceDataGet), &src);
+	g_signal_connect(sourceLabel, "drag-data-get", G_CALLBACK(unixDragSourceDataGet), &src);
 	g_signal_emit_by_name(target, "drag-motion", context, 0, 0, GDK_CURRENT_TIME, &handled);
 	assert_int_equal(s.enters, 1);
 
 	g_signal_emit_by_name(target, "drag-leave", context, GDK_CURRENT_TIME);
 	assert_int_equal(s.exits, 1);
 
-	g_signal_handler_disconnect(target, g_signal_lookup("drag-data-get", G_OBJECT_TYPE(target)));
+	g_signal_handlers_disconnect_by_func(sourceLabel, G_CALLBACK(unixDragSourceDataGet), &src);
+	unixDragFinish(target, destWin, sourceWin, context);
 	unixDragStateFree(&s);
 }
 
@@ -327,6 +374,9 @@ static void unixDragDropRejected(void **state)
 	struct unixDragSource src;
 	GdkDragContext *context;
 	GtkWidget *target;
+	GtkWidget *destWin;
+	GtkWidget *sourceWin;
+	GtkWidget *sourceLabel;
 	const char *targetNames[] = { "text/plain;charset=utf-8" };
 	int targetInfos[] = { uiDragTypeText };
 	gboolean handled;
@@ -337,17 +387,19 @@ static void unixDragDropRejected(void **state)
 	memset(&s, 0, sizeof(s));
 	unixDragRegister(uiControl(*c), &s);
 
+	destWin = unixDragRealize(target);
+
 	memset(&src, 0, sizeof(src));
 	src.text = "hello drag";
 
-	context = unixDragBegin(targetNames, targetInfos, 1);
+	context = unixDragBegin(targetNames, targetInfos, 1, &sourceWin, &sourceLabel);
 	assert_non_null(context);
 
 	s.enterResult = uiDragOperationCopy;
 	s.dropResult = 0;
 	s.fetchType = uiDragTypeText;
 
-	g_signal_connect(target, "drag-data-get", G_CALLBACK(unixDragSourceDataGet), &src);
+	g_signal_connect(sourceLabel, "drag-data-get", G_CALLBACK(unixDragSourceDataGet), &src);
 	g_signal_emit_by_name(target, "drag-motion", context, 0, 0, GDK_CURRENT_TIME, &handled);
 	g_signal_emit_by_name(target, "drag-drop", context, 0, 0, GDK_CURRENT_TIME, &handled);
 	assert_false(handled);
@@ -355,7 +407,8 @@ static void unixDragDropRejected(void **state)
 	assert_false(s.fetchFailed);
 	assert_string_equal(s.gotText, "hello drag");
 
-	g_signal_handler_disconnect(target, g_signal_lookup("drag-data-get", G_OBJECT_TYPE(target)));
+	g_signal_handlers_disconnect_by_func(sourceLabel, G_CALLBACK(unixDragSourceDataGet), &src);
+	unixDragFinish(target, destWin, sourceWin, context);
 	unixDragStateFree(&s);
 }
 
