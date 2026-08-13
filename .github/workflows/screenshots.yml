@@ -48,30 +48,6 @@ jobs:
           cmake -S . -B _build -DCMAKE_BUILD_TYPE=Release -DLIBUI_COMPILE_EXAMPLES=ON
           cmake --build _build --config Release
 
-      - name: Grant screen recording permission
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          # The 15.7.7 runner image pops the "bypass the system private
-          # window picker" dialog whenever bash requests screen capture (see
-          # actions/runner-images#14166). The working fix is to pre-seed the
-          # TCC database so bash/zsh are already authorized for ScreenCapture
-          # before we ever call a capture API; the same recipe is used by
-          # edgafner/GBrowser and mirrors configure-tccdb-macos.sh.
-          tccutil reset ScreenCapture 2>/dev/null || true
-          UDB="$HOME/Library/Application Support/com.apple.TCC/TCC.db"
-          SDB="/Library/Application Support/com.apple.TCC/TCC.db"
-          for db in "$UDB"; do
-            [ -f "$db" ] || continue
-            for client in /bin/bash /bin/zsh; do
-              sqlite3 "$db" "INSERT OR REPLACE INTO access (service, client, client_type, auth_value, auth_reason, auth_version, indirect_object_identifier_type, flags) VALUES ('kTCCServiceScreenCapture', '$client', 1, 2, 0, 1, 0, 0);" 2>/dev/null || true
-            done
-          done
-          # The system-wide database needs root; the runner has passwordless
-          # sudo. Failures are swallowed so this can never break the job.
-          sudo sqlite3 "$SDB" "INSERT OR REPLACE INTO access (service, client, client_type, auth_value, auth_reason, auth_version, indirect_object_identifier_type, flags) VALUES ('kTCCServiceScreenCapture', '/bin/bash', 1, 2, 0, 1, 0, 0);" 2>/dev/null || true
-          sudo sqlite3 "$SDB" "INSERT OR REPLACE INTO access (service, client, client_type, auth_value, auth_reason, auth_version, indirect_object_identifier_type, flags) VALUES ('kTCCServiceScreenCapture', '/bin/zsh', 1, 2, 0, 1, 0, 0);" 2>/dev/null || true
-
       - name: Take screenshots
         shell: bash
         run: |

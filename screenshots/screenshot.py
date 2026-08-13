@@ -22,6 +22,7 @@ import time
 
 try:
     import mss
+    import mss.tools
 except ImportError:
     sys.stderr.write("error: this script requires the mss package (pip install mss)\n")
     sys.exit(2)
@@ -90,24 +91,60 @@ def find_example(build_dir, name):
     return None
 
 
+def _grab_uniform(grab):
+    # A screen capture that came back without permission is a solid-color
+    # frame; treat it as a failure instead of committing a blank PNG.
+    rgb = grab.rgb
+    if not rgb:
+        return True
+    stride = max(1, len(rgb) // 4096)
+    first = rgb[0]
+    for i in range(0, len(rgb), stride):
+        if rgb[i] != first:
+            return False
+    return True
+
+
+def _osascript_capture(output):
+    # Screen recording on macOS 15+ is attributed to the responsible
+    # process, and the runner images pre-authorize only a few of them (see
+    # configure-tccdb-macos.sh in actions/runner-images). /usr/bin/osascript
+    # is one of those, so run screencapture(1) through it to sidestep the
+    # "bypass the system private window picker" dialog that otherwise pops up
+    # over the captured window (actions/runner-images#14166).
+    tmp = output + ".tmp"
+    try:
+        subprocess.run(
+            ["osascript", "-e", 'do shell script "screencapture -x \\"%s\\""' % tmp],
+            check=True, capture_output=True)
+        if os.path.isfile(tmp) and os.path.getsize(tmp) > 0:
+            os.replace(tmp, output)
+            return True
+    except Exception:
+        pass
+    return False
+
+
 def capture(sct, output):
     if sys.platform == "darwin":
-        # mss can be denied screen-recording access on some systems; fall
-        # back to the screencapture(1) utility when that happens.
-        try:
-            sct.shot(output=output)
-        except Exception:
-            subprocess.run(["screencapture", "-x", output], check=True)
-    else:
-        sct.shot(output=output)
+        # Prefer the osascript route above; fall back to mss and only keep a
+        # capture that is not a blank frame.
+        if _osascript_capture(output):
+            return True
+        grab = sct.grab(sct.monitors[1])
+        if _grab_uniform(grab):
+            return False
+        mss.tools.to_png(grab.rgb, grab.size, output)
+        return True
+    sct.shot(output=output)
+    return True
 
 
 def run_and_capture(sct, exe, output, delay):
     proc = subprocess.Popen([exe])
     try:
         time.sleep(delay)
-        capture(sct, output)
-        return True
+        return capture(sct, output)
     finally:
         if proc.poll() is None:
             proc.terminate()
