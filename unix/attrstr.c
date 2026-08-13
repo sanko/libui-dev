@@ -30,7 +30,7 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 	double r, g, b, a;
-	PangoUnderline underline;
+	PangoUnderline underline = PANGO_UNDERLINE_NONE;
 	uiUnderlineColor colorType;
 	const uiOpenTypeFeatures *features;
 	GString *featurestr;

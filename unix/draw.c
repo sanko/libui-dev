@@ -21,7 +21,7 @@ void uiprivFreeContext(uiDrawContext *c)
 
 static cairo_pattern_t *mkbrush(uiDrawBrush *b)
 {
-	cairo_pattern_t *pat;
+	cairo_pattern_t *pat = NULL;
 	size_t i;
 
 	switch (b->Type) {
@@ -38,6 +38,8 @@ static cairo_pattern_t *mkbrush(uiDrawBrush *b)
 			b->X1, b->Y1, b->OuterRadius);
 		break;
 //	case uiDrawBrushTypeImage:
+	default:
+		uiprivImplBug("unknown brush type in mkbrush()");
 	}
 	if (cairo_pattern_status(pat) != CAIRO_STATUS_SUCCESS)
 		uiprivImplBug("error creating pattern in mkbrush(): %s",

@@ -71,7 +71,7 @@ static void mainStepsResetAfterQuit(void **state)
 	for (i = 0; i < 100; i++)
 		if (!uiMainStep(0))
 			break;
-	assert_in_range(i, 0, 99);
+	assert_int_in_range(i, 0, 99);
 
 	uiMainSteps();
 	assert_true(uiMainStep(0));
