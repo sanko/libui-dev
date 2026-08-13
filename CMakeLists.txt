@@ -314,7 +314,7 @@ if(LIBUI_COMPILE_EXAMPLES)
         test/unit/checkbox.c test/unit/radiobuttons.c test/unit/tab.c
         test/unit/scroll.c
         test/unit/entry.c test/unit/menu.c test/unit/progressbar.c
-        test/unit/drawmatrix.c test/unit/imagebuffer.c test/unit/attrstr.c test/unit/window.c
+        test/unit/drawmatrix.c test/unit/image.c test/unit/imagebuffer.c test/unit/attrstr.c test/unit/window.c
         test/unit/tooltip.c test/unit/dragdestination.c)
     target_include_directories(unit PRIVATE ${PROJECT_SOURCE_DIR}/test/unit)
     target_link_libraries(unit PRIVATE cmocka)
@@ -329,6 +329,7 @@ if(LIBUI_COMPILE_EXAMPLES)
     add_test(NAME unit-checkbox COMMAND unit checkbox)
     add_test(NAME unit-combobox COMMAND unit combobox)
     add_test(NAME unit-drawmatrix COMMAND unit drawmatrix)
+    add_test(NAME unit-image COMMAND unit image)
     add_test(NAME unit-imagebuffer COMMAND unit imagebuffer)
     add_test(NAME unit-editablecombobox COMMAND unit editablecombobox)
     add_test(NAME unit-entry COMMAND unit entry)

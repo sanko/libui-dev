@@ -37,6 +37,50 @@ void uiFreeImage(uiImage *i)
 	uiprivFree(i);
 }
 
+uiImage *uiNewImageFromFile(const char *filename)
+{
+	uiImage *i;
+	GError *err = NULL;
+	GdkPixbuf *pixbuf;
+	cairo_surface_t *cs;
+	int width, height;
+
+	if (filename == NULL)
+		uiprivUserBug("You cannot load a uiImage from a NULL filename.");
+
+	pixbuf = gdk_pixbuf_new_from_file(filename, &err);
+	if (pixbuf == NULL) {
+		g_error_free(err);
+		return NULL;
+	}
+
+	width = gdk_pixbuf_get_width(pixbuf);
+	height = gdk_pixbuf_get_height(pixbuf);
+	// scale 1 so the surface is the pixel size; the logical size of a
+	// file-loaded image is its pixel size
+	cs = gdk_cairo_surface_create_from_pixbuf(pixbuf, 1, NULL);
+	g_object_unref(pixbuf);
+	if (cairo_surface_status(cs) != CAIRO_STATUS_SUCCESS) {
+		cairo_surface_destroy(cs);
+		return NULL;
+	}
+
+	i = uiprivNew(uiImage);
+	i->width = width;
+	i->height = height;
+	i->images = g_ptr_array_new_with_free_func(freeImageRep);
+	g_ptr_array_add(i->images, cs);
+	return i;
+}
+
+void uiImageGetSize(uiImage *i, int *width, int *height)
+{
+	if (width != NULL)
+		*width = (int) i->width;
+	if (height != NULL)
+		*height = (int) i->height;
+}
+
 uiImage *uiprivImageCopy(uiImage *i)
 {
 	uiImage *copy;

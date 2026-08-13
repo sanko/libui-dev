@@ -42,6 +42,62 @@ void uiFreeImage(uiImage *i)
 	uiprivFree(i);
 }
 
+uiImage *uiNewImageFromFile(const char *filename)
+{
+	uiImage *i;
+	WCHAR *wfilename;
+	IWICBitmapDecoder *decoder = NULL;
+	IWICBitmapFrameDecode *frame = NULL;
+	IWICBitmap *b = NULL;
+	UINT ux, uy;
+	HRESULT hr;
+
+	if (filename == NULL)
+		uiprivUserBug("You cannot load a uiImage from a NULL filename.");
+
+	wfilename = toUTF16(filename);
+	hr = uiprivWICFactory->CreateDecoderFromFilename(wfilename,
+		NULL, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &decoder);
+	uiprivFree(wfilename);
+	// a failed load is an expected, user-facing condition (the file may not
+	// exist or be decodable), so return NULL silently like the other backends
+	if (hr != S_OK)
+		return NULL;
+	hr = decoder->GetFrame(0, &frame);
+	if (hr != S_OK) {
+		decoder->Release();
+		return NULL;
+	}
+	hr = frame->GetSize(&ux, &uy);
+	if (hr != S_OK) {
+		frame->Release();
+		decoder->Release();
+		return NULL;
+	}
+	// cache the pixels so the bitmap outlives the decoder, which we release
+	// before the bitmap is used
+	hr = uiprivWICFactory->CreateBitmapFromSource(frame, WICBitmapCacheOnLoad, &b);
+	frame->Release();
+	decoder->Release();
+	if (hr != S_OK)
+		return NULL;
+
+	i = uiprivNew(uiImage);
+	i->width = ux;
+	i->height = uy;
+	i->bitmaps = new std::vector<IWICBitmap *>;
+	i->bitmaps->push_back(b);
+	return i;
+}
+
+void uiImageGetSize(uiImage *i, int *width, int *height)
+{
+	if (width != NULL)
+		*width = (int) i->width;
+	if (height != NULL)
+		*height = (int) i->height;
+}
+
 uiImage *uiprivImageCopy(uiImage *i)
 {
 	uiImage *copy;

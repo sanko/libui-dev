@@ -3709,6 +3709,31 @@ _UI_EXTERN uiImage *uiNewImage(double width, double height);
 _UI_EXTERN void uiFreeImage(uiImage *i);
 
 /**
+ * Loads an image from the given file.
+ *
+ * The image is decoded with the platform's built-in image codecs, so the
+ * supported formats are those of the host system (PNG, JPEG, GIF, TIFF,
+ * BMP, and so on). The logical size of the resulting image is its pixel
+ * size, at a scale factor of 1.
+ *
+ * @param filename Path to the image file.
+ * @returns A new uiImage instance, or NULL if the file could not be loaded.
+ *          The returned image must be freed with uiFreeImage().
+ * @memberof uiImage @static
+ */
+_UI_EXTERN uiImage *uiNewImageFromFile(const char *filename);
+
+/**
+ * Returns the size of the image in pixels.
+ *
+ * @param i uiImage instance.
+ * @param width Pointer to receive the width in pixels. May be NULL.
+ * @param height Pointer to receive the height in pixels. May be NULL.
+ * @memberof uiImage
+ */
+_UI_EXTERN void uiImageGetSize(uiImage *i, int *width, int *height);
+
+/**
  * Appends a new image representation.
  *
  * @param i uiImage instance.

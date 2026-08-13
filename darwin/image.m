@@ -23,6 +23,47 @@ void uiFreeImage(uiImage *i)
 	uiprivFree(i);
 }
 
+uiImage *uiNewImageFromFile(const char *filename)
+{
+	uiImage *i;
+	NSString *nsfilename;
+	NSImage *nsimage;
+	NSBitmapImageRep *rep;
+	NSSize size;
+
+	if (filename == NULL)
+		uiprivUserBug("You cannot load a uiImage from a NULL filename.");
+
+	nsfilename = [NSString stringWithUTF8String:filename];
+	if (nsfilename == nil)
+		return NULL;
+	nsimage = [[NSImage alloc] initWithContentsOfFile:nsfilename];
+	if (nsimage == nil)
+		return NULL;
+
+	// the logical size of a file-loaded image is its pixel size, so
+	// normalize the NSImage size to the pixel dimensions of its bitmap rep
+	rep = [[nsimage representations] firstObject];
+	if (rep != nil)
+		size = NSMakeSize([rep pixelsWide], [rep pixelsHigh]);
+	else
+		size = [nsimage size];
+	[nsimage setSize:size];
+
+	i = uiprivNew(uiImage);
+	i->size = size;
+	i->i = nsimage;
+	return i;
+}
+
+void uiImageGetSize(uiImage *i, int *width, int *height)
+{
+	if (width != NULL)
+		*width = (int) i->size.width;
+	if (height != NULL)
+		*height = (int) i->size.height;
+}
+
 static uint8_t premultiply(uint8_t c, uint8_t a)
 {
 	return (uint8_t) ((((uint32_t) c) * ((uint32_t) a) + 127) / 255);

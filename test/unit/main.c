@@ -77,6 +77,7 @@ int main(int argc, char *argv[])
 		{ "entry", entryRunUnitTests },
 		{ "progressbar", progressBarRunUnitTests },
 		{ "drawmatrix", drawMatrixRunUnitTests },
+		{ "image", imageRunUnitTests },
 		{ "imagebuffer", imageBufferRunUnitTests },
 		{ "attrstr", attrstrRunUnitTests },
 		{ "tooltip", tooltipRunUnitTests },
