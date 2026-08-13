@@ -132,7 +132,7 @@ def main():
     os.makedirs(args.out, exist_ok=True)
 
     shots = 0
-    with mss.mss() as sct:
+    with mss.MSS() as sct:
         for name in EXAMPLES:
             exe = find_example(args.build_dir, name)
             if exe is None:
