@@ -10,6 +10,10 @@
 
 #include "../../ui.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Unit test run functions.
  */
@@ -34,6 +38,7 @@ int imageBufferRunUnitTests(void);
 int attrstrRunUnitTests(void);
 int tooltipRunUnitTests(void);
 int dragDestinationRunUnitTests(void);
+int platformDragDropRunUnitTests(void);
 
 /**
  * Helper for general setup/teardown of controls embedded in a window.
@@ -74,5 +79,9 @@ int unitTestSetup(void **state);
 int unitTestTeardown(void **state);
 
 #define uiControlPtrFromState(t, s) (t**)&(((struct state *)*(s))->c)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

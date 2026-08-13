@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
 		{ "attrstr", attrstrRunUnitTests },
 		{ "tooltip", tooltipRunUnitTests },
 		{ "dragdestination", dragDestinationRunUnitTests },
+		{ "dragdrop", platformDragDropRunUnitTests },
 	};
 
 	// an optional argument filters which component(s) run; each component

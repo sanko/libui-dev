@@ -86,6 +86,7 @@ void uiDarwinNotifyVisibilityChanged(uiDarwinControl *c)
 void uiprivControlDestroyDragDestination(uiControl *c)
 {
 	[(id)uiControlHandle(c) unregisterDraggedTypes];
+	uiprivDisassociateDragDestination(c);
 	uiprivFree(c->dragDest);
 	c->dragDest = NULL;
 }
@@ -100,6 +101,8 @@ void uiControlRegisterDragDestination(uiControl *c, uiDragDestination *dd)
 		return;
 
 	c->dragDest = dd;
+
+	uiprivAssociateDragDestination(c);
 
 	types = [NSMutableArray new];
 	if (dd->typeMask & uiDragTypeURIs) {

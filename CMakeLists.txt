@@ -307,6 +307,15 @@ if(LIBUI_COMPILE_EXAMPLES)
     target_include_directories(tester PRIVATE ${PROJECT_SOURCE_DIR}/test)
 
     # cmocka unit tests
+    set(LIBUI_UNIT_PLATFORM_SOURCES)
+    if(WIN32)
+        list(APPEND LIBUI_UNIT_PLATFORM_SOURCES test/unit/dragdestination_win.cpp)
+    elseif(APPLE)
+        list(APPEND LIBUI_UNIT_PLATFORM_SOURCES test/unit/dragdestination_darwin.m)
+    else()
+        list(APPEND LIBUI_UNIT_PLATFORM_SOURCES test/unit/dragdestination_unix.c)
+    endif()
+
     add_ui_exe(unit test/unit/resources.rc
         test/unit/main.c test/unit/init.c test/unit/slider.c test/unit/spinbox.c
         test/unit/label.c test/unit/button.c test/unit/combobox.c
@@ -315,7 +324,8 @@ if(LIBUI_COMPILE_EXAMPLES)
         test/unit/scroll.c
         test/unit/entry.c test/unit/menu.c test/unit/progressbar.c
         test/unit/drawmatrix.c test/unit/image.c test/unit/imagebuffer.c test/unit/attrstr.c test/unit/window.c
-        test/unit/tooltip.c test/unit/dragdestination.c)
+        test/unit/tooltip.c test/unit/dragdestination.c
+        ${LIBUI_UNIT_PLATFORM_SOURCES})
     target_include_directories(unit PRIVATE ${PROJECT_SOURCE_DIR}/test/unit)
     target_link_libraries(unit PRIVATE cmocka)
     # the unit runner reports results on stdout; keep it console-subsystem
@@ -345,6 +355,7 @@ if(LIBUI_COMPILE_EXAMPLES)
     add_test(NAME unit-tooltip COMMAND unit tooltip)
     add_test(NAME unit-window COMMAND unit window)
     add_test(NAME unit-dragdestination COMMAND unit dragdestination)
+    add_test(NAME unit-dragdrop COMMAND unit dragdrop)
 
     # headless control smoke tests
     add_ui_exe(qa test/qa/resources.rc

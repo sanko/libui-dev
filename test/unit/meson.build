@@ -37,6 +37,10 @@ if libui_OS == 'windows'
 			args: libui_manifest_args,
 			depend_files: [libui_unit_manifest]),
 	]
+elif libui_OS == 'darwin'
+	libui_unit_sources += ['dragdestination_darwin.m']
+else
+	libui_unit_sources += ['dragdestination_unix.c']
 endif
 
 unit = executable('unit', libui_unit_sources,

@@ -166,6 +166,8 @@ extern void uiprivLoadUndocumented(void);
 extern BOOL uiprivSendKeyboardEditEvents(uiprivApplicationClass *app, NSEvent *e);
 
 // dragdestination.m
+extern void uiprivAssociateDragDestination(uiControl *c);
+extern void uiprivDisassociateDragDestination(uiControl *c);
 extern NSDragOperation uiprivDragOperationToNSDragOperation(uiDragOperation op);
 
 // dragcontext.m
