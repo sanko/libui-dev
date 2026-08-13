@@ -167,6 +167,10 @@ drawingEffectsAttr::drawingEffectsAttr(void)
 	this->hasUnderlineColor = false;
 }
 
+drawingEffectsAttr::~drawingEffectsAttr(void)
+{
+}
+
 HRESULT STDMETHODCALLTYPE drawingEffectsAttr::QueryInterface(REFIID riid, void **ppvObject)
 {
 	if (ppvObject == NULL)
@@ -266,6 +270,12 @@ public:
 		dwfactory->QueryInterface(__uuidof (IDWriteFactory2), (void **) (&(this->dwfactory2)));
 	}
 
+	virtual ~textRenderer(void)
+	{
+		if (this->dwfactory2 != NULL)
+			this->dwfactory2->Release();
+	}
+
 	// IUnknown
 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject)
 	{
@@ -292,8 +302,6 @@ public:
 	{
 		this->refcount--;
 		if (this->refcount == 0) {
-			if (this->dwfactory2 != NULL)
-				this->dwfactory2->Release();
 			delete this;
 			return 0;
 		}

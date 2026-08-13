@@ -90,6 +90,10 @@ static void hsv2RGB(double h, double s, double v, double *r, double *g, double *
 	double m;
 
 	c = v * s;
+	// wrap h into [0, 1) so that h60 is always one of 0..5
+	h = fmod(h, 1.0);
+	if (h < 0)
+		h += 1.0;
 	hPrime = h * 6;
 	h60 = (int) hPrime;		// equivalent to splitting into 60° chunks
 	x = c * (1.0 - fabs(fmod(hPrime, 2) - 1.0));
@@ -124,6 +128,13 @@ static void hsv2RGB(double h, double s, double v, double *r, double *g, double *
 		*r = c + m;
 		*g = m;
 		*b = x + m;
+		return;
+	default:
+		// the wrap above guarantees h60 is one of 0..5, so this is
+		// unreachable; fall back to the hue-0 result for safety
+		*r = c + m;
+		*g = x + m;
+		*b = m;
 		return;
 	}
 	// TODO
