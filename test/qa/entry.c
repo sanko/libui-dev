@@ -102,6 +102,59 @@ uiControl *passwordEntryOnChanged(void)
 	return uiControl(vbox);
 }
 
+static void entryFilesDroppedCb(uiEntry *e, int fileCount, char **fileNames, void *data)
+{
+	uiLabel *label = data;
+	char buf[1024];
+	int n;
+	int i;
+
+	n = sprintf(buf, "Dropped %d file(s):", fileCount);
+	for (i = 0; i < fileCount; ++i)
+		n += sprintf(buf + n, "\n%s", fileNames[i]);
+	uiLabelSetText(label, buf);
+}
+
+const char *entryFilesDroppedGuide(void) {
+	return
+	"1.\tYou should see a text entry box. Next to it should be a label\n"
+	"\tdisplaying `Dropped 0 file(s):`.\n"
+	"\n"
+	"2.\tDrag one or more files from your file manager onto the entry box.\n"
+	"\tWhile dragging over the entry box, the cursor should indicate a copy\n"
+	"\toperation is allowed. The label should read `Dropped N file(s):`\n"
+	"\tfollowed by one line per dropped file path.\n"
+	"\n"
+	"3.\tDrag a selection of text from another application onto the entry\n"
+	"\tbox. The drop should be rejected: the cursor should not indicate a\n"
+	"\tcopy operation and the label should remain unchanged.";
+}
+
+uiControl *entryFilesDropped(void)
+{
+	uiBox *vbox;
+	uiBox *hbox;
+	uiEntry *entry;
+	uiLabel *label;
+
+	vbox = uiNewVerticalBox();
+	uiBoxSetPadded(vbox, 1);
+
+	hbox = uiNewHorizontalBox();
+	uiBoxSetPadded(hbox, 1);
+	uiBoxAppend(vbox, uiControl(hbox), 0);
+
+	entry = uiNewEntry();
+	uiBoxAppend(hbox, uiControl(entry), 0);
+	label = uiNewLabel("Dropped 0 file(s):");
+	uiBoxAppend(hbox, uiControl(label), 0);
+
+	uiEntrySetAcceptDrops(entry, 1);
+	uiEntryOnFilesDropped(entry, entryFilesDroppedCb, label);
+
+	return uiControl(vbox);
+}
+
 static void searchEntryOnChangedCb(uiEntry *e, void *data)
 {
 	char str[32];

@@ -93,6 +93,32 @@ static void entrySetPlaceholder(void **state)
 	uiFreeText(rv);
 }
 
+static void entryDragDestinationNotRegistered(void **state)
+{
+	uiEntry **e = uiEntryPtrFromState(state);
+
+	assert_null(uiControl(*e)->dragDest);
+}
+
+static void entryAcceptDropsDefault(void **state)
+{
+	uiEntry **e = uiEntryPtrFromState(state);
+
+	assert_int_equal(uiEntryAcceptDrops(*e), 0);
+}
+
+static void entrySetAcceptDrops(void **state)
+{
+	uiEntry **e = uiEntryPtrFromState(state);
+
+	uiEntrySetAcceptDrops(*e, 1);
+	assert_int_equal(uiEntryAcceptDrops(*e), 1);
+	assert_non_null(uiControl(*e)->dragDest);
+	assert_int_equal(uiDragDestinationAcceptTypes(uiControl(*e)->dragDest), uiDragTypeURIs);
+	uiEntrySetAcceptDrops(*e, 0);
+	assert_int_equal(uiEntryAcceptDrops(*e), 0);
+}
+
 static int entryTestSetup(void **state)
 {
 	int rv = unitTestSetup(state);
@@ -152,6 +178,9 @@ int entryRunUnitTests(void)
 		entryUnitTests(entrySetReadOnly),
 		entryUnitTests(entryPlaceholderDefault),
 		entryUnitTests(entrySetPlaceholder),
+		entryUnitTests(entryDragDestinationNotRegistered),
+		entryUnitTests(entryAcceptDropsDefault),
+		entryUnitTests(entrySetAcceptDrops),
 	};
 
 	return cmocka_run_group_tests_name("uiEntry", tests, unitTestsSetup, unitTestsTeardown);

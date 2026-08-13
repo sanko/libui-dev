@@ -11,6 +11,19 @@ static void onEntryChanged(uiEntry *entry, void *data)
 	uiFreeText(text);
 }
 
+static void onEntryFilesDropped(uiEntry *entry, int fileCount, char **fileNames, void *data)
+{
+	uiLabel *label = uiLabel(data);
+	char buf[1024];
+	int n;
+	int i;
+
+	n = snprintf(buf, sizeof(buf), "Dropped %d file(s):", fileCount);
+	for (i = 0; i < fileCount; ++i)
+		n += snprintf(buf + n, sizeof(buf) - n, "\n%s", fileNames[i]);
+	uiLabelSetText(label, buf);
+}
+
 static int onClosing(uiWindow *w, void *data)
 {
 	uiQuit();
@@ -48,6 +61,9 @@ int main(void)
 	label = uiNewLabel("Edit this text");
 	uiEntryOnChanged(entry, onEntryChanged, label);
 	uiBoxAppend(box, uiControl(label), 0);
+
+	uiEntrySetAcceptDrops(entry, 1);
+	uiEntryOnFilesDropped(entry, onEntryFilesDropped, label);
 
 	uiControlShow(uiControl(w));
 	uiMain();

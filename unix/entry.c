@@ -9,6 +9,9 @@ struct uiEntry {
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 	gulong onChangedSignal;
+	void (*onFilesDropped)(uiEntry *, int, char **, void *);
+	void *onFilesDroppedData;
+	int acceptDrops;
 };
 
 uiUnixControlAllDefaults(uiEntry)
@@ -43,6 +46,62 @@ void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 {
 	e->onChanged = f;
 	e->onChangedData = data;
+}
+
+static void defaultOnFilesDropped(uiEntry *e, int fileCount, char **fileNames, void *data)
+{
+	// do nothing
+}
+
+static uiDragOperation entryOnEnter(uiDragDestination *dd, uiDragContext *dc, void *data)
+{
+	uiEntry *e = (uiEntry *) data;
+
+	if (e->acceptDrops && (uiDragContextDragTypes(dc) & uiDragTypeURIs))
+		return uiDragOperationCopy;
+	return uiDragOperationNone;
+}
+
+static int entryOnDrop(uiDragDestination *dd, uiDragContext *dc, void *data)
+{
+	uiEntry *e = (uiEntry *) data;
+	uiDragData *d;
+
+	if (!e->acceptDrops)
+		return 0;
+	d = uiDragContextDragData(dc, uiDragTypeURIs);
+	if (d == NULL)
+		return 0;
+	(*(e->onFilesDropped))(e, d->data.URIs.numURIs, d->data.URIs.URIs, e->onFilesDroppedData);
+	uiFreeDragData(d);
+	return 1;
+}
+
+void uiEntryOnFilesDropped(uiEntry *e,
+	void (*f)(uiEntry *, int, char **, void *), void *data)
+{
+	e->onFilesDropped = f;
+	e->onFilesDroppedData = data;
+}
+
+int uiEntryAcceptDrops(uiEntry *e)
+{
+	return e->acceptDrops;
+}
+
+void uiEntrySetAcceptDrops(uiEntry *e, int accept)
+{
+	uiDragDestination *dd;
+
+	e->acceptDrops = accept;
+	if (!accept || uiControl(e)->dragDest != NULL)
+		return;
+
+	dd = uiNewDragDestination();
+	uiDragDestinationSetAcceptTypes(dd, uiDragTypeURIs);
+	uiDragDestinationOnEnter(dd, entryOnEnter, e);
+	uiDragDestinationOnDrop(dd, entryOnDrop, e);
+	uiControlRegisterDragDestination(uiControl(e), dd);
 }
 
 int uiEntryReadOnly(uiEntry *e)
@@ -85,6 +144,8 @@ static uiEntry *finishNewEntry(GtkWidget *w, const gchar *signal)
 
 	e->onChangedSignal = g_signal_connect(e->widget, signal, G_CALLBACK(onChanged), e);
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
+	uiEntryOnFilesDropped(e, defaultOnFilesDropped, NULL);
+	uiEntrySetAcceptDrops(e, 0);
 
 	return e;
 }
